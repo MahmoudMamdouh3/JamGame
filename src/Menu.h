@@ -61,4 +61,6 @@ private:
     void setupButtons();
     void setupText();
     void updateButtonSelection();
+    bool isMouseOverButton(const sf::RectangleShape &button) const;
+    void checkMouseClick(const sf::Vector2f &mousePos);
 };

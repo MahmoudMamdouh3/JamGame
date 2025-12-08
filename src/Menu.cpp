@@ -98,6 +98,29 @@ void Menu::handleInput()
                 m_window.close();
             }
         }
+
+        // Handle mouse movement for button hover
+        if (const auto *mouseMoved = event->getIf<sf::Event::MouseMoved>())
+        {
+            sf::Vector2f mousePos(static_cast<float>(mouseMoved->position.x), static_cast<float>(mouseMoved->position.y));
+
+            if (isMouseOverButton(m_startButton))
+                m_selectedOption = 0;
+            else if (isMouseOverButton(m_optionsButton))
+                m_selectedOption = 1;
+            else if (isMouseOverButton(m_exitButton))
+                m_selectedOption = 2;
+        }
+
+        // Handle mouse clicks
+        if (const auto *mouseButton = event->getIf<sf::Event::MouseButtonPressed>())
+        {
+            if (mouseButton->button == sf::Mouse::Button::Left)
+            {
+                sf::Vector2f mousePos(static_cast<float>(mouseButton->position.x), static_cast<float>(mouseButton->position.y));
+                checkMouseClick(mousePos);
+            }
+        }
     }
 }
 
@@ -139,4 +162,36 @@ void Menu::render()
         m_window.draw(*m_gameNameText);
 
     m_window.display();
+}
+
+bool Menu::isMouseOverButton(const sf::RectangleShape &button) const
+{
+    sf::Vector2i mousePos = sf::Mouse::getPosition(m_window);
+    sf::Vector2f buttonPos = button.getPosition();
+    sf::Vector2f buttonSize = button.getSize();
+
+    return mousePos.x >= buttonPos.x && mousePos.x <= buttonPos.x + buttonSize.x &&
+           mousePos.y >= buttonPos.y && mousePos.y <= buttonPos.y + buttonSize.y;
+}
+
+void Menu::checkMouseClick(const sf::Vector2f &mousePos)
+{
+    if (m_startButton.getGlobalBounds().contains(mousePos))
+    {
+        m_selectedOption = 0;
+        m_selectionMade = true;
+        m_currentState = MenuState::Main;
+    }
+    else if (m_optionsButton.getGlobalBounds().contains(mousePos))
+    {
+        m_selectedOption = 1;
+        m_selectionMade = true;
+        m_currentState = MenuState::Options;
+    }
+    else if (m_exitButton.getGlobalBounds().contains(mousePos))
+    {
+        m_selectedOption = 2;
+        m_selectionMade = true;
+        m_currentState = MenuState::Exit;
+    }
 }
