@@ -41,7 +41,12 @@ add_library(glad STATIC "vendor/glad/src/glad.c")
 target_include_directories(glad PUBLIC "vendor/glad/include")
 
 # 3. Game Executable
-file(GLOB_RECURSE SOURCES "src/*.cpp" "include/*.h" "include/*.hpp")
+file(GLOB_RECURSE SOURCES 
+    "src/*.cpp" 
+    "src/*.h"
+    "include/*.h" 
+    "include/*.hpp"
+)
 
 add_executable(JamGame ${SOURCES})
 
