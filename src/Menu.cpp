@@ -1,12 +1,14 @@
 #include "Menu.h"
 #include "Config.h"
 #include <iostream>
+#include <sstream>
 
 Menu::Menu(sf::RenderWindow &window)
     : m_window(window), m_currentState(MenuState::Main), m_selectedOption(0), m_selectionMade(false)
 {
     setupButtons();
     setupText();
+    setupTitleBox();
 }
 
 void Menu::setupButtons()
@@ -56,11 +58,70 @@ void Menu::setupText()
     m_exitText = std::make_unique<sf::Text>(m_font, "EXIT", 40);
     m_exitText->setFillColor(m_textColor);
     m_exitText->setPosition(m_exitButton.getPosition() + sf::Vector2f{80.f, 15.f});
+}
 
-    // Game Name Text (on the right side)
-    m_gameNameText = std::make_unique<sf::Text>(m_font, "Isometric\nFullscreen\nCity", 60);
-    m_gameNameText->setFillColor(sf::Color::White);
-    m_gameNameText->setPosition({WINDOW_WIDTH - 500.f, WINDOW_HEIGHT / 2 - 100.f});
+void Menu::setupTitleBox()
+{
+    // Create title box on the right side
+    float boxWidth = 400.f;
+    float boxHeight = 300.f;
+    float boxX = WINDOW_WIDTH - boxWidth - 50.f; // 50 pixels from right edge
+    float boxY = WINDOW_HEIGHT / 2 - boxHeight / 2;
+
+    m_titleBox.setSize({boxWidth, boxHeight});
+    m_titleBox.setPosition({boxX, boxY});
+    m_titleBox.setFillColor(sf::Color::Transparent);
+    m_titleBox.setOutlineColor(sf::Color::White);
+    m_titleBox.setOutlineThickness(2.f);
+
+    // Wrap text inside the box
+    wrapTextInBox(GAME_TITLE, boxWidth - 20.f, 50);
+}
+
+void Menu::wrapTextInBox(const std::string &text, float boxWidth, float charSize)
+{
+    m_titleLines.clear();
+
+    std::string currentLine;
+    std::istringstream stream(text);
+    std::string word;
+
+    while (stream >> word)
+    {
+        std::string testLine = currentLine.empty() ? word : currentLine + " " + word;
+        sf::Text testText(m_font, testLine, static_cast<unsigned int>(charSize));
+
+        if (testText.getGlobalBounds().size.x > boxWidth && !currentLine.empty())
+        {
+            // Current line is full, start a new one
+            auto lineText = std::make_unique<sf::Text>(m_font, currentLine, static_cast<unsigned int>(charSize));
+            lineText->setFillColor(sf::Color::White);
+            m_titleLines.push_back(std::move(lineText));
+            currentLine = word;
+        }
+        else
+        {
+            currentLine = testLine;
+        }
+    }
+
+    // Add the last line
+    if (!currentLine.empty())
+    {
+        auto lineText = std::make_unique<sf::Text>(m_font, currentLine, static_cast<unsigned int>(charSize));
+        lineText->setFillColor(sf::Color::White);
+        m_titleLines.push_back(std::move(lineText));
+    }
+
+    // Position each line inside the box
+    float lineY = m_titleBox.getPosition().y + 15.f;
+    float lineSpacing = charSize + 10.f;
+
+    for (auto &line : m_titleLines)
+    {
+        line->setPosition({m_titleBox.getPosition().x + 10.f, lineY});
+        lineY += lineSpacing;
+    }
 }
 
 void Menu::handleInput()
@@ -158,8 +219,16 @@ void Menu::render()
         m_window.draw(*m_optionsText);
     if (m_exitText)
         m_window.draw(*m_exitText);
-    if (m_gameNameText)
-        m_window.draw(*m_gameNameText);
+
+    // Render title box
+    m_window.draw(m_titleBox);
+
+    // Render wrapped title text
+    for (auto &line : m_titleLines)
+    {
+        if (line)
+            m_window.draw(*line);
+    }
 
     m_window.display();
 }

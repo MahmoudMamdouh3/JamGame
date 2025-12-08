@@ -37,6 +37,10 @@ private:
     std::unique_ptr<sf::Text> m_exitText;
     std::unique_ptr<sf::Text> m_gameNameText;
 
+    // Title textbox
+    sf::RectangleShape m_titleBox;
+    std::vector<std::unique_ptr<sf::Text>> m_titleLines;
+
     // Colors
     const sf::Color m_buttonColor = sf::Color::White;
     const sf::Color m_selectedColor = sf::Color::Yellow;
@@ -60,7 +64,9 @@ public:
 private:
     void setupButtons();
     void setupText();
+    void setupTitleBox();
     void updateButtonSelection();
     bool isMouseOverButton(const sf::RectangleShape &button) const;
     void checkMouseClick(const sf::Vector2f &mousePos);
+    void wrapTextInBox(const std::string &text, float boxWidth, float charSize);
 };

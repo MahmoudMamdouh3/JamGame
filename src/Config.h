@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 // Window Configuration
 const int WINDOW_WIDTH = 1920;
 const int WINDOW_HEIGHT = 1080;
@@ -14,3 +16,6 @@ const int MAP_SIZE = 30;
 const float GRAVITY = 2000.0f;
 const float JUMP_FORCE = 750.0f;
 const float MOVE_SPEED = 6.0f;
+
+// UI Configuration
+const std::string GAME_TITLE = "Insert\tSome\tArabic\tSaying\tHere";

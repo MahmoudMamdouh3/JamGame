@@ -3,7 +3,7 @@
 #include <optional>
 
 Game::Game()
-    : m_window(sf::VideoMode({(unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT}), "Isometric Fullscreen City"),
+    : m_window(sf::VideoMode({(unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT}), GAME_TITLE),
       m_renderer(m_window),
       m_menu(m_window),
       m_gameState(GameState::Menu)
