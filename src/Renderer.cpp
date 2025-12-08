@@ -36,8 +36,6 @@ void Renderer::render(const Map &map, const Player &player)
             }
         }
     }
-
-    m_window.display();
 }
 
 void Renderer::renderTile(const Map &map, int x, int y)

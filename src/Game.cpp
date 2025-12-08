@@ -6,6 +6,7 @@ Game::Game()
     : m_window(sf::VideoMode({(unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT}), GAME_TITLE),
       m_renderer(m_window),
       m_menu(m_window),
+      m_pauseMenu(m_window),
       m_gameState(GameState::Menu)
 {
     m_window.setFramerateLimit(60);
@@ -45,6 +46,47 @@ void Game::run()
             processEvents();
             update(dt);
             renderGame();
+            m_window.display();
+        }
+        else if (m_gameState == GameState::Paused)
+        {
+            m_pauseMenu.handleInput();
+
+            // Check pause menu selection
+            if (m_pauseMenu.isSelectionMade())
+            {
+                if (m_pauseMenu.getSelectedOption() == 0)
+                {
+                    // Resume
+                    m_gameState = GameState::Playing;
+                    m_pauseMenu.resetSelection();
+                }
+                else if (m_pauseMenu.getSelectedOption() == 1)
+                {
+                    // Restart
+                    m_map.buildLevel();
+                    m_gameState = GameState::Playing;
+                    m_pauseMenu.resetSelection();
+                }
+                else if (m_pauseMenu.getSelectedOption() == 2)
+                {
+                    // Options - open the options menu
+                    m_pauseMenu.openOptions();
+                    m_pauseMenu.clearSelectionMade();
+                }
+                else if (m_pauseMenu.getSelectedOption() == 3)
+                {
+                    // Return to menu
+                    m_gameState = GameState::Menu;
+                    m_menu.resetSelection();
+                    m_pauseMenu.resetSelection();
+                }
+            }
+
+            // Render game in background with pause menu overlay
+            renderGame();
+            m_pauseMenu.render();
+            m_window.display();
         }
     }
 }
@@ -58,11 +100,11 @@ void Game::processEvents()
 
         if (const auto *key = event->getIf<sf::Event::KeyPressed>())
         {
-            // Return to menu with Escape
+            // Pause with Escape
             if (key->code == sf::Keyboard::Key::Escape)
             {
-                m_gameState = GameState::Menu;
-                m_menu.resetSelection();
+                m_gameState = GameState::Paused;
+                m_pauseMenu.resetSelection();
             }
             else if (key->code == sf::Keyboard::Key::Space)
             {

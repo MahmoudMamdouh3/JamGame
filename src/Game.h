@@ -4,6 +4,7 @@
 #include "Map.h"
 #include "Renderer.h"
 #include "UI/Menu.h"
+#include "UI/PauseMenu.h"
 #include "Config.h"
 
 class Game
@@ -15,6 +16,7 @@ private:
     Map m_map;
     Renderer m_renderer;
     Menu m_menu;
+    PauseMenu m_pauseMenu;
     GameState m_gameState;
 
 public:

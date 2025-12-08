@@ -19,13 +19,13 @@ Player::Player()
 void Player::handleInput(float dt, int heights[MAP_SIZE][MAP_SIZE])
 {
     sf::Vector2f move(0.f, 0.f);
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
         move.y -= 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
         move.y += 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
         move.x -= 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
         move.x += 1;
 
     if (move.x != 0 || move.y != 0)
