@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "Config.h" // Access shared constants
+#include "Config.h" // Access shared constants like FRAME_WIDTH
 
 class AnimationComponent {
 private:

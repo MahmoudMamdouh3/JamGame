@@ -13,6 +13,7 @@ Game::Game()
     m_window.setFramerateLimit(60);
 
     // Important: Load player assets (texture)
+    // This calls the method where we load the real texture into the sprite
     m_player.loadAssets();
 
     // Build the initial level

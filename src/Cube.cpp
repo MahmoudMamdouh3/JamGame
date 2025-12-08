@@ -1,4 +1,5 @@
 #include "Cube.h"
+#include <cstdint> // Required for fixed width types like uint8_t
 
 Cube::Cube(sf::Vector2f pos, sf::Color color)
 {
@@ -44,7 +45,7 @@ Cube::Cube(sf::Vector2f pos, sf::Color color)
     right.setFillColor(darkest);
 }
 
-void Cube::draw(sf::RenderTarget &target, sf::RenderStates states) const
+void Cube::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
     target.draw(left, states);
     target.draw(right, states);
