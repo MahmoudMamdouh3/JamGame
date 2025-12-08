@@ -303,8 +303,6 @@ void Menu::render()
             if (line)
                 m_window.draw(*line);
         }
-
-        m_window.display();
     }
 }
 
