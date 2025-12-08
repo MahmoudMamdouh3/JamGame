@@ -2,54 +2,77 @@
 #include "Cube.h"
 #include "IsometricUtils.h"
 #include <iostream>
-#include <SFML/Graphics.hpp>
+#include <cmath> // For standard math if needed
 
-Renderer::Renderer(sf::RenderWindow &window)
-    : m_window(window), m_cameraOffset(WINDOW_WIDTH / 2.0f, 100.f)
+Renderer::Renderer(sf::RenderWindow& window)
+    : m_window(window)
 {
+    // Start centered roughly on the map center (15, 15)
+    // We can just init this to 0, 0, the update() will fix it in the first frame
+    m_cameraOffset = sf::Vector2f(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
 }
 
-void Renderer::render(const Map &map, const Player &player)
+// Linear Interpolation helper
+sf::Vector2f Renderer::lerp(const sf::Vector2f& start, const sf::Vector2f& end, float t)
 {
-    const sf::View &view = m_window.getView();
-    m_cameraOffset.x = view.getSize().x / 2.0f;
+    return start + (end - start) * t;
+}
 
-    // Center the map vertically within the current view to reduce clipping at lower resolutions.
-    const float mapHeight = (MAP_SIZE - 1) * TILE_HEIGHT;
-    m_cameraOffset.y = (view.getSize().y - mapHeight) / 2.0f;
+void Renderer::update(float dt, sf::Vector2f targetGridPos)
+{
+    // 1. Where is the player on the screen right now (if camera was at 0,0)?
+    sf::Vector2f playerScreenPos = IsometricUtils::gridToScreen(targetGridPos.x, targetGridPos.y);
 
-    m_window.clear(sf::Color(30, 30, 35));
+    // 2. We want that position to be at the Center of the Window
+    sf::Vector2f screenCenter(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
 
-    // Isometric Depth Sort Loop
+    // 3. The target offset is the difference
+    sf::Vector2f targetOffset = screenCenter - playerScreenPos;
+
+    // 4. Smoothly move current offset to target offset
+    // 5.0f is the "Camera Speed". Higher = Snappier, Lower = Floaty.
+    float speed = 5.0f * dt;
+
+    // Clamp speed to 1.0 to prevent overshooting
+    if (speed > 1.0f) speed = 1.0f;
+
+    m_cameraOffset = lerp(m_cameraOffset, targetOffset, speed);
+}
+
+void Renderer::render(const Map& map, const Player& player)
+{
+    m_window.clear(sf::Color(245, 240, 230));
+
+    // Optimisation Idea for later: 
+    // Only loop through x/y that are actually visible on screen based on m_cameraOffset.
+    // For now, we still draw everything.
+
     for (int sum = 0; sum < MAP_SIZE * 2; sum++)
     {
         for (int x = 0; x < MAP_SIZE; x++)
         {
             int y = sum - x;
-            if (y < 0 || y >= MAP_SIZE)
-                continue;
+            if (y < 0 || y >= MAP_SIZE) continue;
 
-            // 1. Draw the terrain/building for this tile
             renderTile(map, x, y);
 
-            // 2. Check if player is on this tile and draw them
-            // We cast to int to see if the player occupies this specific grid cell
             if ((int)player.getPosition().x == x && (int)player.getPosition().y == y)
             {
                 renderPlayer(player, map, x, y);
             }
         }
     }
+
+    m_window.display();
 }
 
-void Renderer::renderTile(const Map &map, int x, int y)
+void Renderer::renderTile(const Map& map, int x, int y)
 {
     sf::Vector2f isoPos = IsometricUtils::gridToScreen((float)x, (float)y);
-    isoPos += m_cameraOffset;
+    isoPos += m_cameraOffset; // Apply Camera Shift
 
     int tileHeight = map.getHeight(x, y);
 
-    // Draw Ground (Flat Tile)
     if (tileHeight == 0)
     {
         sf::ConvexShape tile;
@@ -60,12 +83,11 @@ void Renderer::renderTile(const Map &map, int x, int y)
         tile.setPoint(3, sf::Vector2f(-TILE_WIDTH / 2, TILE_HEIGHT / 2));
 
         tile.setPosition(isoPos);
-        tile.setFillColor(sf::Color(200, 200, 200)); // Lighter floor
+        tile.setFillColor(sf::Color(200, 200, 200));
         tile.setOutlineColor(sf::Color(180, 180, 180));
         tile.setOutlineThickness(1);
         m_window.draw(tile);
     }
-    // Draw Building (Stacked Cubes)
     else
     {
         for (int h = 1; h <= tileHeight; h++)
@@ -73,14 +95,10 @@ void Renderer::renderTile(const Map &map, int x, int y)
             sf::Vector2f blockPos = isoPos;
             blockPos.y -= (h - 1) * BLOCK_HEIGHT;
 
-            // Block Colors
             sf::Color c;
-            if (h == 1)
-                c = sf::Color(120, 120, 180);
-            else if (h == 2)
-                c = sf::Color(160, 160, 210);
-            else
-                c = sf::Color(200, 200, 240);
+            if (h == 1)      c = sf::Color(120, 120, 180);
+            else if (h == 2) c = sf::Color(160, 160, 210);
+            else             c = sf::Color(200, 200, 240);
 
             Cube block(blockPos, c);
             m_window.draw(block);
@@ -88,27 +106,22 @@ void Renderer::renderTile(const Map &map, int x, int y)
     }
 }
 
-void Renderer::renderPlayer(const Player &player, const Map &map, int x, int y)
+void Renderer::renderPlayer(const Player& player, const Map& map, int x, int y)
 {
     sf::Vector2f pScreen = IsometricUtils::gridToScreen(player.getPosition().x, player.getPosition().y);
-    pScreen += m_cameraOffset;
+    pScreen += m_cameraOffset; // Apply Camera Shift
 
     float currentFloorY = map.getHeight(x, y) * BLOCK_HEIGHT;
 
-    // 1. Draw Shadow
     sf::CircleShape shadow = player.getShadow();
     shadow.setPosition(sf::Vector2f(pScreen.x, pScreen.y - currentFloorY));
     m_window.draw(shadow);
 
-    // 2. Draw Sprite
-    const sf::Sprite &sprite = player.getSprite();
+    const sf::Sprite& sprite = player.getSprite();
 
-    // Calculate sprite position
     sf::Vector2f spritePos = pScreen;
     spritePos.y -= (player.getZ() + currentFloorY);
 
-    // Create a copy of the sprite to set its position
-    // (We must copy because the original sprite inside Player doesn't know its screen coordinates)
     sf::Sprite drawSprite = sprite;
     drawSprite.setPosition(spritePos);
     m_window.draw(drawSprite);

@@ -137,6 +137,10 @@ void Game::update(float dt)
 
     // 2. Update Physics/Animation
     m_player.update(dt, m_map);
+
+    // 3. Update Camera (NEW)
+    // We pass the player's grid position so the camera knows what to follow
+    m_renderer.update(dt, m_player.getPosition());
 }
 
 void Game::render()
