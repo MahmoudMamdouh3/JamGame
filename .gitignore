@@ -1,0 +1,16 @@
+# Build directories
+build/
+out/
+bin/
+
+# Visual Studio / VS Code
+.vscode/
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.user
+CMakeSettings.json
+
+# OS
+.DS_Store
+Thumbs.db
