@@ -9,22 +9,22 @@
 
 class Game
 {
+public:
+    Game();
+    void run();
+
 private:
     sf::RenderWindow m_window;
     sf::Clock m_clock;
-    Player m_player;
+
+    // Core Game Systems
     Map m_map;
+    Player m_player;
     Renderer m_renderer;
     Menu m_menu;
     PauseMenu m_pauseMenu;
     GameState m_gameState;
 
-public:
-    Game();
-
-    void run();
-
-private:
     void processEvents();
     void update(float dt);
     void render();

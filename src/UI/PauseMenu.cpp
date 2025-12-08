@@ -191,7 +191,7 @@ void PauseMenu::handleInput()
                     m_selectedOption = 2;
                 else if (isMouseOverButton(m_mainMenuButton, mousePos))
                     m_selectedOption = 3;
-        }
+            }
 
             // Handle mouse clicks
             if (const auto *mouseButton = event->getIf<sf::Event::MouseButtonPressed>())

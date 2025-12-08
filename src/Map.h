@@ -10,7 +10,7 @@ public:
     Map();
 
     void buildLevel();
+
+    // Returns the height of the block at grid coordinates (x, y)
     int getHeight(int x, int y) const;
-    int (*getHeights()) [MAP_SIZE]
-    { return m_heights; }
 };

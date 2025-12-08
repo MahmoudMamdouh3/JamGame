@@ -1,21 +1,29 @@
 #include "Game.h"
-#include <SFML/Graphics.hpp>
-#include <optional>
+#include <iostream>
 
 Game::Game()
     : m_window(sf::VideoMode({(unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT}), GAME_TITLE),
+      m_map(),
+      m_player(),
       m_renderer(m_window),
       m_menu(m_window),
       m_pauseMenu(m_window),
       m_gameState(GameState::Menu)
 {
     m_window.setFramerateLimit(60);
+
+    // Important: Load player assets (texture)
+    m_player.loadAssets();
+
+    // Build the initial level
+    m_map.buildLevel();
 }
 
 void Game::run()
 {
     while (m_window.isOpen())
     {
+        // Calculate Delta Time
         float dt = m_clock.restart().asSeconds();
 
         if (m_gameState == GameState::Menu)
@@ -95,9 +103,11 @@ void Game::processEvents()
 {
     while (const std::optional event = m_window.pollEvent())
     {
+        // Handle Window Close
         if (event->is<sf::Event::Closed>())
             m_window.close();
 
+        // Handle Key Presses (One-time events like Jump or Reset)
         if (const auto *key = event->getIf<sf::Event::KeyPressed>())
         {
             // Pause with Escape
@@ -108,9 +118,9 @@ void Game::processEvents()
             }
             else if (key->code == sf::Keyboard::Key::Space)
             {
-                m_player.jump(m_map.getHeights());
+                // Pass map to jump logic to check if on ground
+                m_player.jump(m_map);
             }
-            // Reset/Rebuild map on 'R'
             else if (key->code == sf::Keyboard::Key::R)
             {
                 m_map.buildLevel();
@@ -121,8 +131,11 @@ void Game::processEvents()
 
 void Game::update(float dt)
 {
-    m_player.handleInput(dt, m_map.getHeights());
-    m_player.update(dt, m_map.getHeights());
+    // 1. Handle Continuous Input (Movement)
+    m_player.handleInput(dt, m_map);
+
+    // 2. Update Physics/Animation
+    m_player.update(dt, m_map);
 }
 
 void Game::render()

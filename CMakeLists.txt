@@ -28,15 +28,12 @@ FetchContent_Declare(
     GIT_TAG v3.0.0 
     GIT_SHALLOW ON
 )
-# Note: Box2D v3 changed API significantly. If you need 2.4.1, change tag to v2.4.1.
-# I used 3.0.0 because you mentioned "Latest" SFML, assuming you want latest Box2D too.
-
+# Note: Box2D v3 changed API significantly.
 set(BOX2D_BUILD_TESTBED OFF CACHE BOOL "" FORCE)
 set(BOX2D_BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(box2d)
 
 # --- GLAD (Local Vendor) ---
-# We treat Glad as a small library
 add_library(glad STATIC "vendor/glad/src/glad.c")
 target_include_directories(glad PUBLIC "vendor/glad/include")
 
@@ -55,13 +52,19 @@ add_executable(JamGame ${SOURCES})
 # 4. Linking
 target_link_libraries(JamGame PRIVATE SFML::Graphics SFML::Window SFML::System box2d glad)
 
-target_include_directories(JamGame PRIVATE include)
+# 5. Include Directories
+# We add "${CMAKE_SOURCE_DIR}/src" so that if you have #include "Config.h" 
+# inside a file, it finds it correctly inside the src folder.
+target_include_directories(JamGame PRIVATE 
+    include
+    "${CMAKE_SOURCE_DIR}/src"
+)
 
-# 5. ASSET MANAGEMENT (The "Effortless" Part)
-# This copies the 'assets' folder to the same folder as the .exe automatically
+# 6. ASSET MANAGEMENT
+# Copies the 'assets' folder to the build folder automatically
 add_custom_command(TARGET JamGame POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/assets
-        ${CMAKE_CURRENT_BINARY_DIR}/assets
+    ${CMAKE_SOURCE_DIR}/assets
+    ${CMAKE_CURRENT_BINARY_DIR}/assets
     COMMENT "Copying Assets to Binary Directory..."
 )
