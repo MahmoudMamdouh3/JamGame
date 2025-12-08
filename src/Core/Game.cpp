@@ -1,0 +1,124 @@
+#include "Game.h"
+#include <iostream>
+
+Game::Game()
+    : m_window(sf::VideoMode({ (unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT }), GAME_TITLE),
+    m_map(),
+    m_player(),
+    m_renderer(m_window),
+    m_menu(m_window),
+    m_pauseMenu(m_window),
+    m_gameState(GameState::Menu),
+    m_audio()
+{
+    m_window.setFramerateLimit(60);
+
+    m_audio.loadSound("jump", "assets/jump.wav");
+    m_audio.loadSound("menu_move", "assets/blip.wav");
+    m_audio.loadSound("menu_select", "assets/select.wav");
+
+    m_audio.playMusic("assets/city_theme.ogg");
+
+    m_player.loadAssets();
+    m_map.buildLevel();
+}
+
+void Game::run()
+{
+    while (m_window.isOpen())
+    {
+        float dt = m_clock.restart().asSeconds();
+
+        if (m_gameState == GameState::Menu)
+        {
+            m_menu.handleInput(m_audio);
+
+            if (m_menu.isSelectionMade())
+            {
+                int choice = m_menu.getSelectedOption();
+                if (choice == 0) m_gameState = GameState::Playing;
+                else if (choice == 1) std::cout << "Options selected" << std::endl;
+                else if (choice == 2) m_window.close();
+
+                m_menu.resetSelection();
+            }
+            m_menu.render();
+        }
+        else if (m_gameState == GameState::Playing)
+        {
+            processEvents();
+            update(dt);
+            render();
+        }
+        else if (m_gameState == GameState::Paused)
+        {
+            m_pauseMenu.handleInput(m_audio);
+
+            if (m_pauseMenu.isSelectionMade())
+            {
+                int choice = m_pauseMenu.getSelectedOption();
+                if (choice == 0)
+                {
+                    m_gameState = GameState::Playing;
+                    m_pauseMenu.resetSelection();
+                }
+                else if (choice == 1)
+                {
+                    m_map.buildLevel();
+                    m_gameState = GameState::Playing;
+                    m_pauseMenu.resetSelection();
+                }
+                else if (choice == 3)
+                {
+                    m_gameState = GameState::Menu;
+                    m_menu.resetSelection();
+                    m_pauseMenu.resetSelection();
+                }
+            }
+
+            render();
+            m_pauseMenu.render();
+            m_window.display();
+        }
+    }
+}
+
+void Game::processEvents()
+{
+    while (const std::optional event = m_window.pollEvent())
+    {
+        if (event->is<sf::Event::Closed>())
+            m_window.close();
+
+        if (const auto* key = event->getIf<sf::Event::KeyPressed>())
+        {
+            // SFML 3 FIX: Use sf::Keyboard::Key::...
+            if (key->code == sf::Keyboard::Key::Escape)
+            {
+                m_gameState = GameState::Paused;
+                m_pauseMenu.resetSelection();
+            }
+            else if (key->code == sf::Keyboard::Key::Space)
+            {
+                m_player.jump(m_map, m_audio);
+            }
+            else if (key->code == sf::Keyboard::Key::R)
+            {
+                m_map.buildLevel();
+            }
+        }
+    }
+}
+
+void Game::update(float dt)
+{
+    m_audio.update();
+    m_player.handleInput(dt, m_map);
+    m_player.update(dt, m_map);
+    m_renderer.update(dt, m_player.getPosition());
+}
+
+void Game::render()
+{
+    m_renderer.render(m_map, m_player);
+}

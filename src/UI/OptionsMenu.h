@@ -3,11 +3,12 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include "AudioManager.h" // Required for audio integration
 
 class OptionsMenu
 {
 private:
-    sf::RenderWindow &m_window;
+    sf::RenderWindow& m_window;
     sf::Font m_font;
 
     // Options menu state
@@ -40,6 +41,7 @@ private:
     std::vector<std::unique_ptr<sf::Text>> m_resolutionOptions;
     std::vector<sf::RectangleShape> m_resolutionOptionButtons;
 
+    // Back button
     std::unique_ptr<sf::Text> m_backButtonText;
     sf::RectangleShape m_backButton;
 
@@ -48,16 +50,21 @@ private:
     const sf::Color m_selectedColor = sf::Color::Yellow;
     const sf::Color m_textColor = sf::Color::White;
 
-    // Volume
+    // Settings Data
     float m_volumeLevel;
     bool m_isFullscreen;
 
 public:
-    OptionsMenu(sf::RenderWindow &window);
+    OptionsMenu(sf::RenderWindow& window);
 
-    void handleInput();
+    // UPDATED: Now takes AudioManager to play sounds
+    void handleInput(AudioManager& audio);
+
     void render();
+
+    // Returns true if "Back" was selected
     bool isBack() const { return m_selectedOption == 100; }
+
     void resetSelection()
     {
         m_selectedOption = 0;
@@ -71,7 +78,10 @@ public:
 private:
     void setupUI();
     void updateSelection();
-    void updateVolumeDisplay();
+
+    // UPDATED: Takes AudioManager pointer to update music volume in real-time
+    void updateVolumeDisplay(AudioManager* audio = nullptr);
+
     void toggleFullscreen();
     void updateResolutionDisplay();
     void applyWindowSettings();

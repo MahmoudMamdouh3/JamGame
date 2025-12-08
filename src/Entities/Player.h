@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "AnimationComponent.h"
 #include "Config.h"
+#include "AudioManager.h"
 
 // Forward declaration so we don't need to include Map.h here
 class Map;
@@ -39,5 +40,5 @@ public:
     // We pass 'const Map&' so the player can ask the map about heights
     void handleInput(float dt, const Map &map);
     void update(float dt, const Map &map);
-    void jump(const Map &map);
+    void jump(const Map& map, AudioManager& audio);
 };
