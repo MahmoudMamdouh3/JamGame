@@ -133,7 +133,7 @@ void Renderer::renderPlayer(const Player& player, const Map& map, int x, int y)
     // Shadow
     sf::CircleShape shadow = player.getShadow();
     shadow.setPosition(sf::Vector2f(pScreen.x, pScreen.y - currentFloorY));
-    m_window.draw(shadow);
+    m_window.draw(shadow); 
 
     // Sprite
     const sf::Sprite& sprite = player.getSprite();
