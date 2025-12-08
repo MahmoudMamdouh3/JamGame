@@ -2,9 +2,9 @@
 #include "Cube.h"
 #include "IsometricUtils.h"
 #include <iostream>
-#include <cmath> 
+#include <cmath>
 
-Renderer::Renderer(sf::RenderWindow& window)
+Renderer::Renderer(sf::RenderWindow &window)
     : m_window(window)
 {
     // Start with the map perfectly centered
@@ -18,7 +18,7 @@ Renderer::Renderer(sf::RenderWindow& window)
 }
 
 // Linear Interpolation helper
-sf::Vector2f Renderer::lerp(const sf::Vector2f& start, const sf::Vector2f& end, float t)
+sf::Vector2f Renderer::lerp(const sf::Vector2f &start, const sf::Vector2f &end, float t)
 {
     return start + (end - start) * t;
 }
@@ -58,7 +58,7 @@ void Renderer::update(float dt, sf::Vector2f playerGridPos)
     m_cameraOffset = lerp(m_cameraOffset, targetOffset, smoothSpeed);
 }
 
-void Renderer::render(const Map& map, const Player& player)
+void Renderer::render(const Map &map, const Player &player)
 {
     m_window.clear(sf::Color(245, 240, 230));
 
@@ -67,7 +67,8 @@ void Renderer::render(const Map& map, const Player& player)
         for (int x = 0; x < MAP_SIZE; x++)
         {
             int y = sum - x;
-            if (y < 0 || y >= MAP_SIZE) continue;
+            if (y < 0 || y >= MAP_SIZE)
+                continue;
 
             renderTile(map, x, y);
 
@@ -77,11 +78,9 @@ void Renderer::render(const Map& map, const Player& player)
             }
         }
     }
-
-    m_window.display();
 }
 
-void Renderer::renderTile(const Map& map, int x, int y)
+void Renderer::renderTile(const Map &map, int x, int y)
 {
     sf::Vector2f isoPos = IsometricUtils::gridToScreen((float)x, (float)y);
     isoPos += m_cameraOffset;
@@ -113,9 +112,12 @@ void Renderer::renderTile(const Map& map, int x, int y)
             blockPos.y -= (h - 1) * BLOCK_HEIGHT;
 
             sf::Color c;
-            if (h == 1)      c = sf::Color(120, 120, 180);
-            else if (h == 2) c = sf::Color(160, 160, 210);
-            else             c = sf::Color(200, 200, 240);
+            if (h == 1)
+                c = sf::Color(120, 120, 180);
+            else if (h == 2)
+                c = sf::Color(160, 160, 210);
+            else
+                c = sf::Color(200, 200, 240);
 
             Cube block(blockPos, c);
             m_window.draw(block);
@@ -123,7 +125,7 @@ void Renderer::renderTile(const Map& map, int x, int y)
     }
 }
 
-void Renderer::renderPlayer(const Player& player, const Map& map, int x, int y)
+void Renderer::renderPlayer(const Player &player, const Map &map, int x, int y)
 {
     sf::Vector2f pScreen = IsometricUtils::gridToScreen(player.getPosition().x, player.getPosition().y);
     pScreen += m_cameraOffset;
@@ -136,7 +138,7 @@ void Renderer::renderPlayer(const Player& player, const Map& map, int x, int y)
     m_window.draw(shadow); 
 
     // Sprite
-    const sf::Sprite& sprite = player.getSprite();
+    const sf::Sprite &sprite = player.getSprite();
     sf::Vector2f spritePos = pScreen;
     spritePos.y -= (player.getZ() + currentFloorY);
 

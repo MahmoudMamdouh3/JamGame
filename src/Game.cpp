@@ -49,6 +49,7 @@ void Game::run()
             }
 
             renderMenu();
+            m_window.display();
         }
         else if (m_gameState == GameState::Playing)
         {
@@ -135,14 +136,16 @@ void Game::update(float dt)
     // 1. Handle Continuous Input (Movement)
     m_player.handleInput(dt, m_map);
 
-    // 2. Update Physics/Animation
-    m_player.update(dt, m_map);
+    if (m_gameState == GameState::Playing)
+    {
+        // 2. Update Physics/Animation
+        m_player.update(dt, m_map);
 
-    // 3. Update Camera (NEW)
-    // We pass the player's grid position so the camera knows what to follow
-    m_renderer.update(dt, m_player.getPosition());
+        // 3. Update Camera (NEW)
+        // We pass the player's grid position so the camera knows what to follow
+        m_renderer.update(dt, m_player.getPosition());
+    }
 }
-
 void Game::render()
 {
     if (m_gameState == GameState::Menu)
