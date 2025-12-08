@@ -3,29 +3,23 @@
 #include "Player.h"
 #include "Map.h"
 #include "Renderer.h"
-#include "Menu.h"
 #include "Config.h"
 
-class Game
-{
+class Game {
 private:
     sf::RenderWindow m_window;
     sf::Clock m_clock;
-    Player m_player;
+
+    // Core Game Systems
     Map m_map;
+    Player m_player;
     Renderer m_renderer;
-    Menu m_menu;
-    GameState m_gameState;
 
-public:
-    Game();
-
-    void run();
-
-private:
     void processEvents();
     void update(float dt);
     void render();
-    void renderMenu();
-    void renderGame();
+
+public:
+    Game();
+    void run();
 };
