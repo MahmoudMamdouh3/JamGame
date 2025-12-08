@@ -10,6 +10,13 @@ Renderer::Renderer(sf::RenderWindow &window)
 
 void Renderer::render(const Map &map, const Player &player)
 {
+    const sf::View &view = m_window.getView();
+    m_cameraOffset.x = view.getSize().x / 2.0f;
+
+    // Center the map vertically within the current view to reduce clipping at lower resolutions.
+    const float mapHeight = (MAP_SIZE - 1) * TILE_HEIGHT;
+    m_cameraOffset.y = (view.getSize().y - mapHeight) / 2.0f;
+
     m_window.clear(sf::Color(30, 30, 35));
 
     for (int sum = 0; sum < MAP_SIZE * 2; sum++)

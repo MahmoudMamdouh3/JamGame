@@ -3,7 +3,7 @@
 #include "Player.h"
 #include "Map.h"
 #include "Renderer.h"
-#include "Menu.h"
+#include "UI/Menu.h"
 #include "Config.h"
 
 class Game

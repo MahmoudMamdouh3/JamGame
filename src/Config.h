@@ -3,8 +3,10 @@
 #include <string>
 
 // Window Configuration
-const int WINDOW_WIDTH = 1920;
-const int WINDOW_HEIGHT = 1080;
+constexpr unsigned int BASE_WINDOW_WIDTH = 1920;
+constexpr unsigned int BASE_WINDOW_HEIGHT = 1080;
+inline unsigned int WINDOW_WIDTH = BASE_WINDOW_WIDTH;
+inline unsigned int WINDOW_HEIGHT = BASE_WINDOW_HEIGHT;
 
 // Tile Configuration
 const float TILE_WIDTH = 64.f;
@@ -19,3 +21,7 @@ const float MOVE_SPEED = 6.0f;
 
 // UI Configuration
 const std::string GAME_TITLE = "Insert\tSome\tArabic\tSaying\tHere";
+const std::string FONT_PATH = "C:\\Windows\\Fonts\\arial.ttf";
+
+// Audio Configuration
+extern float AUDIO_VOLUME;

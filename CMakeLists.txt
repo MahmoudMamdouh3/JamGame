@@ -46,6 +46,8 @@ file(GLOB_RECURSE SOURCES
     "src/*.h"
     "include/*.h" 
     "include/*.hpp"
+    "src/UI/*.cpp"
+    "src/UI/*.h"
 )
 
 add_executable(JamGame ${SOURCES})
