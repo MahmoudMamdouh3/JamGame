@@ -1,7 +1,8 @@
 #pragma once
 #include "Config.h"
 
-class Map {
+class Map
+{
 private:
     int m_heights[MAP_SIZE][MAP_SIZE];
 

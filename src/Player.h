@@ -6,7 +6,8 @@
 // Forward declaration so we don't need to include Map.h here
 class Map;
 
-class Player {
+class Player
+{
 private:
     sf::Vector2f m_position; // Grid coordinates (x, y)
     float m_z;               // Vertical position (height)
@@ -29,14 +30,14 @@ public:
     void loadAssets();
 
     // Accessors for the Renderer
-    const sf::Vector2f& getPosition() const { return m_position; }
+    const sf::Vector2f &getPosition() const { return m_position; }
     float getZ() const { return m_z; }
-    const sf::Sprite& getSprite() const { return m_sprite; }
-    const sf::CircleShape& getShadow() const { return m_shadow; }
+    const sf::Sprite &getSprite() const { return m_sprite; }
+    const sf::CircleShape &getShadow() const { return m_shadow; }
 
     // Logic
     // We pass 'const Map&' so the player can ask the map about heights
-    void handleInput(float dt, const Map& map);
-    void update(float dt, const Map& map);
-    void jump(const Map& map);
+    void handleInput(float dt, const Map &map);
+    void update(float dt, const Map &map);
+    void jump(const Map &map);
 };

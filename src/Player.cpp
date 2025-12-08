@@ -1,21 +1,21 @@
 #include "Player.h"
-#include "Map.h" 
+#include "Map.h"
 #include <cmath>
-#include <algorithm> 
-#include <iostream> 
+#include <algorithm>
+#include <iostream>
 
 Player::Player()
-// --- FIX START ---
-// 1. Initialize the dummy texture first (default constructor is fine)
+    // --- FIX START ---
+    // 1. Initialize the dummy texture first (default constructor is fine)
     : m_dummyTexture(),
-    // 2. Pass the dummy texture to the sprite to satisfy SFML 3 requirement
-    m_sprite(m_dummyTexture),
-    // 3. Pass the sprite (which is now valid) to the animator
-    m_animator(m_sprite),
-    // --- FIX END ---
-    m_position(MAP_SIZE / 2.0f, MAP_SIZE / 2.0f),
-    m_z(0.0f),
-    m_velocityZ(0.0f)
+      // 2. Pass the dummy texture to the sprite to satisfy SFML 3 requirement
+      m_sprite(m_dummyTexture),
+      // 3. Pass the sprite (which is now valid) to the animator
+      m_animator(m_sprite),
+      // --- FIX END ---
+      m_position(MAP_SIZE / 2.0f, MAP_SIZE / 2.0f),
+      m_z(0.0f),
+      m_velocityZ(0.0f)
 {
     // Initialize Shadow
     m_shadow.setRadius(12.f);
@@ -24,20 +24,23 @@ Player::Player()
     m_shadow.setOrigin(sf::Vector2f(12.f, 12.f));
 }
 
-void Player::loadAssets() {
+void Player::loadAssets()
+{
     // This will overwrite the dummy texture with the real "adventurer_sheet.png"
     m_animator.loadAssets();
 }
 
-void Player::handleInput(float dt, const Map& map)
+void Player::handleInput(float dt, const Map &map)
 {
     sf::Vector2f move(0.f, 0.f);
-
-    // Keyboard Input
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) move.y -= 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) move.y += 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) move.x -= 1;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) move.x += 1;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
+        move.y -= 1;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
+        move.y += 1;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+        move.x -= 1;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+        move.x += 1;
 
     if (move.x != 0 || move.y != 0)
     {
@@ -52,10 +55,14 @@ void Player::handleInput(float dt, const Map& map)
 
         // --- Collision Logic (with Bias) ---
         sf::Vector2f checkPos = nextPos;
-        if (move.x > 0) checkPos.x += COLLISION_BIAS;
-        if (move.x < 0) checkPos.x -= COLLISION_BIAS;
-        if (move.y > 0) checkPos.y += COLLISION_BIAS;
-        if (move.y < 0) checkPos.y -= COLLISION_BIAS;
+        if (move.x > 0)
+            checkPos.x += COLLISION_BIAS;
+        if (move.x < 0)
+            checkPos.x -= COLLISION_BIAS;
+        if (move.y > 0)
+            checkPos.y += COLLISION_BIAS;
+        if (move.y < 0)
+            checkPos.y -= COLLISION_BIAS;
 
         // Clamp to map bounds
         int gridX = std::clamp((int)checkPos.x, 0, MAP_SIZE - 1);
@@ -65,7 +72,8 @@ void Player::handleInput(float dt, const Map& map)
         float obstacleHeight = map.getHeight(gridX, gridY) * BLOCK_HEIGHT;
 
         // Only move if we are high enough (or it's not a wall)
-        if (m_z >= obstacleHeight - 5.0f) {
+        if (m_z >= obstacleHeight - 5.0f)
+        {
             m_position = nextPos;
         }
 
@@ -83,7 +91,7 @@ void Player::handleInput(float dt, const Map& map)
     }
 }
 
-void Player::update(float dt, const Map& map)
+void Player::update(float dt, const Map &map)
 {
     // Gravity Logic
     int cx = (int)m_position.x;
@@ -104,7 +112,7 @@ void Player::update(float dt, const Map& map)
     }
 }
 
-void Player::jump(const Map& map)
+void Player::jump(const Map &map)
 {
     int cx = (int)m_position.x;
     int cy = (int)m_position.y;

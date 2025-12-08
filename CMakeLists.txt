@@ -34,18 +34,17 @@ set(BOX2D_BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(box2d)
 
 # --- GLAD (Local Vendor) ---
-# Assumes glad.c is at vendor/glad/src/glad.c and headers at vendor/glad/include
 add_library(glad STATIC "vendor/glad/src/glad.c")
 target_include_directories(glad PUBLIC "vendor/glad/include")
 
 # 3. Game Executable
-# Since your screenshot shows all .h and .cpp files are inside 'src', 
-# we point GLOB_RECURSE to look specifically there.
 file(GLOB_RECURSE SOURCES 
     "src/*.cpp" 
     "src/*.h"
     "include/*.h" 
     "include/*.hpp"
+    "src/UI/*.cpp"
+    "src/UI/*.h"
 )
 
 add_executable(JamGame ${SOURCES})

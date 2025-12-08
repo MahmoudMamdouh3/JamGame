@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include "OptionsMenu.h"
 
 enum class MenuState
 {
@@ -15,6 +16,7 @@ enum class GameState
 {
     Menu,
     Playing,
+    Paused,
     Exiting
 };
 
@@ -37,6 +39,15 @@ private:
     std::unique_ptr<sf::Text> m_exitText;
     std::unique_ptr<sf::Text> m_gameNameText;
 
+    // Title textbox
+    sf::RectangleShape m_titleBox;
+    std::vector<std::unique_ptr<sf::Text>> m_titleLines;
+
+    sf::Vector2u m_lastWindowSize{};
+
+    // Options menu
+    std::unique_ptr<OptionsMenu> m_optionsMenu;
+
     // Colors
     const sf::Color m_buttonColor = sf::Color::White;
     const sf::Color m_selectedColor = sf::Color::Yellow;
@@ -51,6 +62,7 @@ public:
     MenuState getCurrentState() const { return m_currentState; }
     int getSelectedOption() const { return m_selectedOption; }
     bool isSelectionMade() const { return m_selectionMade; }
+    float getVolume() const { return m_optionsMenu->getVolumeLevel(); }
     void resetSelection()
     {
         m_selectionMade = false;
@@ -60,7 +72,11 @@ public:
 private:
     void setupButtons();
     void setupText();
+    void setupTitleBox();
+    void updateLayout();
+    void updateTextPositions();
     void updateButtonSelection();
-    bool isMouseOverButton(const sf::RectangleShape &button) const;
+    bool isMouseOverButton(const sf::RectangleShape &button, const sf::Vector2f &mousePos) const;
     void checkMouseClick(const sf::Vector2f &mousePos);
+    void wrapTextInBox(const std::string &text, float boxWidth, float charSize);
 };
