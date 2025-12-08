@@ -12,6 +12,12 @@ private:
     float m_z;               // Vertical position (height)
     float m_velocityZ;
 
+    // --- FIX START ---
+    // sf::Sprite in SFML 3 requires a texture at construction.
+    // We add this dummy texture to satisfy the initialization list in the constructor.
+    sf::Texture m_dummyTexture;
+    // --- FIX END ---
+
     // Visuals
     sf::Sprite m_sprite;
     sf::CircleShape m_shadow;

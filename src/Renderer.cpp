@@ -10,7 +10,7 @@ Renderer::Renderer(sf::RenderWindow& window)
 
 void Renderer::render(const Map& map, const Player& player)
 {
-    // Use the warm white background color from your config/original code
+    // Use the warm white background color
     m_window.clear(sf::Color(245, 240, 230));
 
     // Isometric Depth Sort Loop
@@ -94,21 +94,12 @@ void Renderer::renderPlayer(const Player& player, const Map& map, int x, int y)
     // 2. Draw Sprite
     const sf::Sprite& sprite = player.getSprite();
 
-    // IMPORTANT: 
-    // We subtract player.getZ() to move the sprite UP based on their jump height
-    // We subtract currentFloorY so they stand ON TOP of the building, not inside it
+    // Calculate sprite position
     sf::Vector2f spritePos = pScreen;
     spritePos.y -= (player.getZ() + currentFloorY);
 
-    // Create a copy of the sprite to set its position (since getSprite returns a const reference)
-    // Or, cleaner: The sprite inside Player doesn't know its screen position, 
-    // so we must set the position on a temporary sprite or use the sprite's internal relative transform if set up differently.
-    // However, SFML Sprites are lightweight. The standard way is to setPosition on the sprite.
-    // Since getSprite() is const, we have two options: 
-    // A) Make getSprite() non-const (dirty)
-    // B) Use window.draw(sprite, transform)
-    // C) Copy the sprite (easiest for now)
-
+    // Create a copy of the sprite to set its position
+    // (We must copy because the original sprite inside Player doesn't know its screen coordinates)
     sf::Sprite drawSprite = sprite;
     drawSprite.setPosition(spritePos);
     m_window.draw(drawSprite);

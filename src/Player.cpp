@@ -1,12 +1,18 @@
 #include "Player.h"
-#include "Map.h" // Include Map here to use its methods
+#include "Map.h" 
 #include <cmath>
-#include <algorithm> // For std::clamp
+#include <algorithm> 
+#include <iostream> 
 
 Player::Player()
-// Initialize m_sprite first, then pass it to m_animator
-    : m_sprite(),
+// --- FIX START ---
+// 1. Initialize the dummy texture first (default constructor is fine)
+    : m_dummyTexture(),
+    // 2. Pass the dummy texture to the sprite to satisfy SFML 3 requirement
+    m_sprite(m_dummyTexture),
+    // 3. Pass the sprite (which is now valid) to the animator
     m_animator(m_sprite),
+    // --- FIX END ---
     m_position(MAP_SIZE / 2.0f, MAP_SIZE / 2.0f),
     m_z(0.0f),
     m_velocityZ(0.0f)
@@ -16,11 +22,10 @@ Player::Player()
     m_shadow.setScale(sf::Vector2f(1.f, 0.5f));
     m_shadow.setFillColor(sf::Color(0, 0, 0, 80));
     m_shadow.setOrigin(sf::Vector2f(12.f, 12.f));
-
-    // Note: m_animator will handle m_sprite initialization in loadAssets()
 }
 
 void Player::loadAssets() {
+    // This will overwrite the dummy texture with the real "adventurer_sheet.png"
     m_animator.loadAssets();
 }
 

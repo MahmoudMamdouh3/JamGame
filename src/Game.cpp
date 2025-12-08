@@ -4,12 +4,13 @@
 Game::Game()
     : m_window(sf::VideoMode({ (unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT }), "Isometric Adventure"),
     m_map(),
-    m_player(),
+    m_player(), // Default constructor now works correctly with the fix
     m_renderer(m_window)
 {
     m_window.setFramerateLimit(60);
 
     // Important: Load player assets (texture)
+    // This calls the method where we load the real texture into the sprite
     m_player.loadAssets();
 
     // Build the initial level

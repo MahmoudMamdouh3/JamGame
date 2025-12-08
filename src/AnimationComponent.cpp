@@ -15,9 +15,9 @@ void AnimationComponent::loadAssets() {
     if (!m_texture.loadFromFile("assets/adventurer_sheet.png")) {
         // Fallback: Create a red square if texture fails
         std::cerr << "Error loading player texture!" << std::endl;
-        sf::Image img;
-        img.create(FRAME_WIDTH, FRAME_HEIGHT, sf::Color::Red);
-        m_texture.loadFromImage(img);
+        //sf::Image img;
+       // img.create(FRAME_WIDTH, FRAME_HEIGHT, sf::Color::Red);
+       // m_texture.loadFromImage(img);
     }
 
     m_sprite.setTexture(m_texture);
