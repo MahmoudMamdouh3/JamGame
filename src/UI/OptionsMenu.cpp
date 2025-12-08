@@ -434,6 +434,4 @@ void OptionsMenu::render()
     m_window.draw(m_backButton);
     if (m_backButtonText)
         m_window.draw(*m_backButtonText);
-
-    m_window.display();
 }
