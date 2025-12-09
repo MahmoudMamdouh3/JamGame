@@ -1,13 +1,13 @@
 #include "OptionsMenu.h"
-#include "Config.h" 
+#include "../Core/Config.h"
 #include <iostream>
 #include <sstream>
 #include <algorithm> // For std::max and std::min
 
-OptionsMenu::OptionsMenu(sf::RenderWindow& window)
+OptionsMenu::OptionsMenu(sf::RenderWindow &window)
     : m_window(window), m_selectedOption(0), m_isResolutionDropdownOpen(false),
-    m_selectedResolutionIndex(2), m_isDraggingSlider(false),
-    m_volumeLevel(50.f), m_isFullscreen(false)
+      m_selectedResolutionIndex(2), m_isDraggingSlider(false),
+      m_volumeLevel(50.f), m_isFullscreen(false)
 {
     // Try to load font from Config path, fallback to system path
     if (!m_font.openFromFile(FONT_PATH))
@@ -21,8 +21,7 @@ OptionsMenu::OptionsMenu(sf::RenderWindow& window)
         {1280, 720},
         {1600, 900},
         {1920, 1080},
-        {2560, 1440}
-    };
+        {2560, 1440}};
 
     setupUI();
 }
@@ -36,54 +35,54 @@ void OptionsMenu::setupUI()
     // Title
     m_titleText = std::make_unique<sf::Text>(m_font, "OPTIONS", 60);
     m_titleText->setFillColor(sf::Color::White);
-    m_titleText->setPosition({ startX, 50.f });
+    m_titleText->setPosition({startX, 50.f});
 
     // Volume Label
     m_volumeLabel = std::make_unique<sf::Text>(m_font, "Volume:", 40);
     m_volumeLabel->setFillColor(m_textColor);
-    m_volumeLabel->setPosition({ startX, startY });
+    m_volumeLabel->setPosition({startX, startY});
 
     // Volume Value
     m_volumeValue = std::make_unique<sf::Text>(m_font, "50%", 40);
     m_volumeValue->setFillColor(m_textColor);
-    m_volumeValue->setPosition({ startX + 400.f, startY });
+    m_volumeValue->setPosition({startX + 400.f, startY});
 
     // Volume Slider
-    m_volumeSlider.setSize({ 200.f, 20.f });
-    m_volumeSlider.setPosition({ startX + 200.f, startY + 10.f });
+    m_volumeSlider.setSize({200.f, 20.f});
+    m_volumeSlider.setPosition({startX + 200.f, startY + 10.f});
     m_volumeSlider.setFillColor(sf::Color::White);
 
-    m_volumeHandle.setSize({ 15.f, 40.f });
-    m_volumeHandle.setPosition({ startX + 200.f + (m_volumeLevel / 100.f) * 200.f - 7.5f, startY });
+    m_volumeHandle.setSize({15.f, 40.f});
+    m_volumeHandle.setPosition({startX + 200.f + (m_volumeLevel / 100.f) * 200.f - 7.5f, startY});
     m_volumeHandle.setFillColor(m_selectedColor);
 
     // Fullscreen Label
     float fullscreenY = startY + lineHeight;
     m_fullscreenLabel = std::make_unique<sf::Text>(m_font, "Fullscreen:", 40);
     m_fullscreenLabel->setFillColor(m_textColor);
-    m_fullscreenLabel->setPosition({ startX, fullscreenY });
+    m_fullscreenLabel->setPosition({startX, fullscreenY});
 
-    m_fullscreenButton.setSize({ 80.f, 50.f });
-    m_fullscreenButton.setPosition({ startX + 400.f, fullscreenY + 5.f });
+    m_fullscreenButton.setSize({80.f, 50.f});
+    m_fullscreenButton.setPosition({startX + 400.f, fullscreenY + 5.f});
     m_fullscreenButton.setFillColor(m_buttonColor);
 
     m_fullscreenValue = std::make_unique<sf::Text>(m_font, "OFF", 35);
     m_fullscreenValue->setFillColor(sf::Color::Black);
-    m_fullscreenValue->setPosition({ m_fullscreenButton.getPosition() + sf::Vector2f{10.f, 5.f} });
+    m_fullscreenValue->setPosition({m_fullscreenButton.getPosition() + sf::Vector2f{10.f, 5.f}});
 
     // Resolution Label
     float resolutionY = fullscreenY + lineHeight;
     m_resolutionLabel = std::make_unique<sf::Text>(m_font, "Resolution:", 40);
     m_resolutionLabel->setFillColor(m_textColor);
-    m_resolutionLabel->setPosition({ startX, resolutionY });
+    m_resolutionLabel->setPosition({startX, resolutionY});
 
-    m_resolutionButton.setSize({ 200.f, 50.f });
-    m_resolutionButton.setPosition({ startX + 400.f, resolutionY + 5.f });
+    m_resolutionButton.setSize({200.f, 50.f});
+    m_resolutionButton.setPosition({startX + 400.f, resolutionY + 5.f});
     m_resolutionButton.setFillColor(m_buttonColor);
 
     m_resolutionValue = std::make_unique<sf::Text>(m_font, resolutionToString(m_resolutions[m_selectedResolutionIndex]), 35);
     m_resolutionValue->setFillColor(sf::Color::Black);
-    m_resolutionValue->setPosition({ m_resolutionButton.getPosition() + sf::Vector2f{20.f, 5.f} });
+    m_resolutionValue->setPosition({m_resolutionButton.getPosition() + sf::Vector2f{20.f, 5.f}});
 
     // Resolution dropdown options
     for (size_t i = 0; i < m_resolutions.size(); ++i)
@@ -91,39 +90,41 @@ void OptionsMenu::setupUI()
         auto optionText = std::make_unique<sf::Text>(m_font, resolutionToString(m_resolutions[i]), 30);
         optionText->setFillColor(sf::Color::Black);
 
-        sf::RectangleShape optionButton({ 180.f, 40.f });
-        optionButton.setPosition({ startX + 420.f, resolutionY + 70.f + static_cast<float>(i) * 50.f });
+        sf::RectangleShape optionButton({180.f, 40.f});
+        optionButton.setPosition({startX + 420.f, resolutionY + 70.f + static_cast<float>(i) * 50.f});
         optionButton.setFillColor(m_buttonColor);
 
-        optionText->setPosition({ optionButton.getPosition() + sf::Vector2f{15.f, 3.f} });
+        optionText->setPosition({optionButton.getPosition() + sf::Vector2f{15.f, 3.f}});
 
         m_resolutionOptions.push_back(std::move(optionText));
         m_resolutionOptionButtons.push_back(optionButton);
     }
 
     // Back button
-    m_backButton.setSize({ 200.f, 60.f });
-    m_backButton.setPosition({ startX, resolutionY + lineHeight + 50.f });
+    m_backButton.setSize({200.f, 60.f});
+    m_backButton.setPosition({startX, resolutionY + lineHeight + 50.f});
     m_backButton.setFillColor(m_buttonColor);
 
     m_backButtonText = std::make_unique<sf::Text>(m_font, "BACK", 40);
     m_backButtonText->setFillColor(sf::Color::Black);
-    m_backButtonText->setPosition({ m_backButton.getPosition() + sf::Vector2f{30.f, 8.f} });
+    m_backButtonText->setPosition({m_backButton.getPosition() + sf::Vector2f{30.f, 8.f}});
 }
 
 void OptionsMenu::updateSelection()
 {
-    if (m_volumeValue) m_volumeValue->setFillColor(m_textColor);
+    if (m_volumeValue)
+        m_volumeValue->setFillColor(m_textColor);
     m_fullscreenButton.setFillColor(m_buttonColor);
     m_resolutionButton.setFillColor(m_buttonColor);
     m_backButton.setFillColor(m_buttonColor);
 
-    for (auto& button : m_resolutionOptionButtons)
+    for (auto &button : m_resolutionOptionButtons)
         button.setFillColor(m_buttonColor);
 
     if (m_selectedOption == 0)
     {
-        if (m_volumeValue) m_volumeValue->setFillColor(m_selectedColor);
+        if (m_volumeValue)
+            m_volumeValue->setFillColor(m_selectedColor);
     }
     else if (m_selectedOption == 1)
     {
@@ -146,14 +147,14 @@ void OptionsMenu::updateSelection()
 }
 
 // UPDATED: Now processes Audio
-void OptionsMenu::handleInput(AudioManager& audio)
+void OptionsMenu::handleInput(AudioManager &audio)
 {
     while (const std::optional event = m_window.pollEvent())
     {
         if (event->is<sf::Event::Closed>())
             m_window.close();
 
-        if (const auto* key = event->getIf<sf::Event::KeyPressed>())
+        if (const auto *key = event->getIf<sf::Event::KeyPressed>())
         {
             if (m_isResolutionDropdownOpen)
             {
@@ -191,17 +192,23 @@ void OptionsMenu::handleInput(AudioManager& audio)
                 if (key->code == sf::Keyboard::Key::Up)
                 {
                     // Logic to cycle: 0(Vol) -> 1(Full) -> 2(Res) -> 100(Back)
-                    if (m_selectedOption == 0) m_selectedOption = 100;
-                    else if (m_selectedOption == 100) m_selectedOption = 2;
-                    else m_selectedOption--;
+                    if (m_selectedOption == 0)
+                        m_selectedOption = 100;
+                    else if (m_selectedOption == 100)
+                        m_selectedOption = 2;
+                    else
+                        m_selectedOption--;
 
                     audio.playSound("menu_move");
                 }
                 else if (key->code == sf::Keyboard::Key::Down)
                 {
-                    if (m_selectedOption == 2) m_selectedOption = 100;
-                    else if (m_selectedOption == 100) m_selectedOption = 0;
-                    else m_selectedOption++;
+                    if (m_selectedOption == 2)
+                        m_selectedOption = 100;
+                    else if (m_selectedOption == 100)
+                        m_selectedOption = 0;
+                    else
+                        m_selectedOption++;
 
                     audio.playSound("menu_move");
                 }
@@ -245,7 +252,7 @@ void OptionsMenu::handleInput(AudioManager& audio)
         }
 
         // Mouse Handling
-        if (const auto* mouseButton = event->getIf<sf::Event::MouseButtonPressed>())
+        if (const auto *mouseButton = event->getIf<sf::Event::MouseButtonPressed>())
         {
             if (mouseButton->button == sf::Mouse::Button::Left)
             {
@@ -271,7 +278,8 @@ void OptionsMenu::handleInput(AudioManager& audio)
                 {
                     m_selectedOption = 2;
                     m_isResolutionDropdownOpen = !m_isResolutionDropdownOpen;
-                    if (m_isResolutionDropdownOpen) m_selectedOption = 3;
+                    if (m_isResolutionDropdownOpen)
+                        m_selectedOption = 3;
                 }
                 else if (m_isResolutionDropdownOpen)
                 {
@@ -296,7 +304,7 @@ void OptionsMenu::handleInput(AudioManager& audio)
             }
         }
 
-        if (const auto* mouseMoved = event->getIf<sf::Event::MouseMoved>())
+        if (const auto *mouseMoved = event->getIf<sf::Event::MouseMoved>())
         {
             if (m_isDraggingSlider)
             {
@@ -309,7 +317,7 @@ void OptionsMenu::handleInput(AudioManager& audio)
             }
         }
 
-        if (const auto* mouseButton = event->getIf<sf::Event::MouseButtonReleased>())
+        if (const auto *mouseButton = event->getIf<sf::Event::MouseButtonReleased>())
         {
             if (mouseButton->button == sf::Mouse::Button::Left)
             {
@@ -351,8 +359,8 @@ void OptionsMenu::applyWindowSettings()
     // Re-apply view
     const float baseW = static_cast<float>(BASE_WINDOW_WIDTH);
     const float baseH = static_cast<float>(BASE_WINDOW_HEIGHT);
-    sf::View view(sf::FloatRect({ 0.f, 0.f }, { baseW, baseH }));
-    view.setCenter({ baseW / 2.f, baseH / 2.f });
+    sf::View view(sf::FloatRect({0.f, 0.f}, {baseW, baseH}));
+    view.setCenter({baseW / 2.f, baseH / 2.f});
     m_window.setView(view);
 }
 
@@ -361,11 +369,11 @@ std::string OptionsMenu::resolutionToString(sf::Vector2u res) const
     return std::to_string(res.x) + "x" + std::to_string(res.y);
 }
 
-void OptionsMenu::updateVolumeDisplay(AudioManager* audio)
+void OptionsMenu::updateVolumeDisplay(AudioManager *audio)
 {
     m_volumeValue->setString(std::to_string(static_cast<int>(m_volumeLevel)) + "%");
     float sliderPos = (m_volumeLevel / 100.f) * 200.f;
-    m_volumeHandle.setPosition({ m_volumeSlider.getPosition().x + sliderPos - 7.5f, m_volumeHandle.getPosition().y });
+    m_volumeHandle.setPosition({m_volumeSlider.getPosition().x + sliderPos - 7.5f, m_volumeHandle.getPosition().y});
 
     // Update global config
     AUDIO_VOLUME = m_volumeLevel;
@@ -383,20 +391,27 @@ void OptionsMenu::render()
 
     m_window.clear(sf::Color::Black);
 
-    if (m_titleText) m_window.draw(*m_titleText);
+    if (m_titleText)
+        m_window.draw(*m_titleText);
 
-    if (m_volumeLabel) m_window.draw(*m_volumeLabel);
+    if (m_volumeLabel)
+        m_window.draw(*m_volumeLabel);
     m_window.draw(m_volumeSlider);
     m_window.draw(m_volumeHandle);
-    if (m_volumeValue) m_window.draw(*m_volumeValue);
+    if (m_volumeValue)
+        m_window.draw(*m_volumeValue);
 
-    if (m_fullscreenLabel) m_window.draw(*m_fullscreenLabel);
+    if (m_fullscreenLabel)
+        m_window.draw(*m_fullscreenLabel);
     m_window.draw(m_fullscreenButton);
-    if (m_fullscreenValue) m_window.draw(*m_fullscreenValue);
+    if (m_fullscreenValue)
+        m_window.draw(*m_fullscreenValue);
 
-    if (m_resolutionLabel) m_window.draw(*m_resolutionLabel);
+    if (m_resolutionLabel)
+        m_window.draw(*m_resolutionLabel);
     m_window.draw(m_resolutionButton);
-    if (m_resolutionValue) m_window.draw(*m_resolutionValue);
+    if (m_resolutionValue)
+        m_window.draw(*m_resolutionValue);
 
     if (m_isResolutionDropdownOpen)
     {
@@ -409,5 +424,6 @@ void OptionsMenu::render()
     }
 
     m_window.draw(m_backButton);
-    if (m_backButtonText) m_window.draw(*m_backButtonText);
+    if (m_backButtonText)
+        m_window.draw(*m_backButtonText);
 }
