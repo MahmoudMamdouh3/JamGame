@@ -33,7 +33,7 @@ const int MAP_SIZE = 16;
 const float GRAVITY = 2000.0f;
 const float JUMP_FORCE = 550.0f;
 const float MOVE_SPEED = 3.5f;
-const float FOLLOWER_SPEED = 10.0f;
+const float FOLLOWER_SPEED = 3.0f;
 const float COLLISION_BIAS = 0.3f;
 
 // --- ANIMATION SETTINGS (The fixes we made previously) ---

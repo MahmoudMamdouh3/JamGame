@@ -86,18 +86,24 @@ void CharacterAnimator::update(float dt, sf::Vector2f inputDir)
     }
 
     // 3. ANIMATE
+    const int ANIM_FRAME_START = 1;                                     // Skip first frame (frame 0)
+    const int ANIM_FRAME_END = 6;                                       // Skip last frame (frame 7), use up to frame 6
+    const int ANIM_FRAME_COUNT = ANIM_FRAME_END - ANIM_FRAME_START + 1; // Total: 6 frames (1-6)
+
     if (moving)
     {
         m_animTimer += dt;
         if (m_animTimer >= FRAME_TIME)
         {
             m_animTimer = 0.0f;
-            m_currentFrame = (m_currentFrame + 1) % FRAMES_PER_SHEET;
+            // Cycle through frames 1-6 only
+            int animIndex = (m_currentFrame + 1) % ANIM_FRAME_COUNT;
+            m_currentFrame = animIndex;
         }
     }
     else
     {
-        m_currentFrame = 0;
+        m_currentFrame = 0; // Reset to first animation frame when idle
         m_animTimer = 0.0f;
     }
 
@@ -112,6 +118,8 @@ void CharacterAnimator::update(float dt, sf::Vector2f inputDir)
 
     m_sprite.setOrigin(sf::Vector2f(w / 2.0f, (float)h));
 
-    int left = m_currentFrame * w;
+    // Map animation frame index to actual sprite sheet frame (offset by ANIM_FRAME_START)
+    int actualFrame = moving ? (m_currentFrame + ANIM_FRAME_START) : 0;
+    int left = actualFrame * w;
     m_sprite.setTextureRect(sf::IntRect(sf::Vector2i(left, 0), sf::Vector2i(w, h)));
 }

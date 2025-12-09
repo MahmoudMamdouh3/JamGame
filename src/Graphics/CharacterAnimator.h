@@ -43,5 +43,5 @@ public:
     virtual ~CharacterAnimator() = default;
 
     void loadAssets();
-    void update(float dt, sf::Vector2f inputDir);
+    virtual void update(float dt, sf::Vector2f inputDir);
 };

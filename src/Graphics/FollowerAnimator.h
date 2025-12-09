@@ -6,6 +6,8 @@ class FollowerAnimator : public CharacterAnimator
 public:
     explicit FollowerAnimator(sf::Sprite &spriteRef);
 
+    // void update(float dt, sf::Vector2f inputDir) override;
+
 protected:
     std::string down_texturePath() const override;
     std::string up_texturePath() const override;
