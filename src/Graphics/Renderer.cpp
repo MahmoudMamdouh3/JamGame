@@ -4,13 +4,15 @@
 #include <cmath> 
 
 Renderer::Renderer(sf::RenderWindow& window)
-    : m_window(window)
+    : m_window(window), m_showGrid(true) // Default grid ON
 {
-    // Initialize camera to start centered roughly
     m_cameraOffset = sf::Vector2f(WINDOW_WIDTH / 2.0f, 100.f);
 }
 
-// Helper function for smooth camera movement
+void Renderer::toggleGrid() {
+    m_showGrid = !m_showGrid;
+}
+
 sf::Vector2f Renderer::lerp(const sf::Vector2f& start, const sf::Vector2f& end, float t)
 {
     return start + (end - start) * t;
@@ -18,54 +20,49 @@ sf::Vector2f Renderer::lerp(const sf::Vector2f& start, const sf::Vector2f& end, 
 
 void Renderer::update(float dt, sf::Vector2f playerGridPos)
 {
-    // 1. Calculate where the center of the map is in Isometric space
+    // Center map logic
     float centerX = MAP_SIZE / 2.0f - 0.5f;
     float centerY = MAP_SIZE / 2.0f - 0.5f;
     sf::Vector2f mapCenterIso = IsometricUtils::gridToScreen(centerX, centerY);
-
-    // 2. Determine the screen center
     sf::Vector2f screenCenter(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
-
-    // 3. Calculate base offset needed to center the map
     sf::Vector2f baseOffset = screenCenter - mapCenterIso;
 
-    // 4. Calculate Player "Lean" 
-    // This moves the camera slightly towards the player from the center, 
-    // creating a dynamic look rather than a strictly locked camera.
+    // CAMERA TWEAK: "Subtle" follow
+    // We calculate the difference between Player and Center
     sf::Vector2f playerIso = IsometricUtils::gridToScreen(playerGridPos.x, playerGridPos.y);
     sf::Vector2f diff = mapCenterIso - playerIso;
-    float leanFactor = 0.08f; // How much the camera follows the player (0.0 = static, 1.0 = locked)
+
+    // leanFactor: 0.05 is very subtle. 0.2 is loose.
+    float leanFactor = 0.1f;
 
     sf::Vector2f targetOffset = baseOffset + (diff * leanFactor);
 
-    // 5. Smoothly interpolate current offset to target
-    float smoothSpeed = 3.0f * dt;
+    // Smooth lerp
+    float smoothSpeed = 4.0f * dt;
     m_cameraOffset = lerp(m_cameraOffset, targetOffset, smoothSpeed);
 }
 
 void Renderer::render(const Map& map, const Player& player)
 {
-    m_window.clear(sf::Color(245, 240, 230)); // Nice off-white background
+    m_window.clear(sf::Color(20, 20, 25)); // Darker BG to make game pop
 
-    // PAINTER'S ALGORITHM LOOP
-    // We iterate through diagonals (sum = x + y) to draw back-to-front.
-    // This ensures that tiles "behind" are drawn before tiles "in front".
+    // DEPTH SORTING LOOP
     for (int sum = 0; sum < MAP_SIZE * 2; sum++)
     {
         for (int x = 0; x < MAP_SIZE; x++)
         {
             int y = sum - x;
-
-            // Bounds check
             if (y < 0 || y >= MAP_SIZE) continue;
 
-            // 1. Render the Terrain Block
             renderTile(map, x, y);
 
-            // 2. Render the Player
-            // We check if the player occupies this specific tile grid coordinate.
-            // Casting to (int) ensures the player is drawn within the depth layer of the tile they are standing on.
-            if ((int)player.getPosition().x == x && (int)player.getPosition().y == y)
+            // FIX: Use round() instead of cast to int.
+            // If player is at 5.9, they are visually closer to tile 6. 
+            // Drawing them at tile 6 ensures they stand "in front" of the tile 5 lines.
+            int pX = (int)std::round(player.getPosition().x);
+            int pY = (int)std::round(player.getPosition().y);
+
+            if (pX == x && pY == y)
             {
                 renderPlayer(player, map, x, y);
             }
@@ -81,34 +78,33 @@ void Renderer::renderTile(const Map& map, int x, int y)
 
     int tileHeight = map.getHeight(x, y);
 
-    // If it's a flat tile (Ground level 0)
+    // GROUND (Level 0)
     if (tileHeight == 0) {
-        sf::ConvexShape tile;
-        tile.setPointCount(4);
-        tile.setPoint(0, sf::Vector2f(0.f, 0.f));
-        tile.setPoint(1, sf::Vector2f(TILE_WIDTH / 2, TILE_HEIGHT / 2));
-        tile.setPoint(2, sf::Vector2f(0.f, TILE_HEIGHT));
-        tile.setPoint(3, sf::Vector2f(-TILE_WIDTH / 2, TILE_HEIGHT / 2));
+        if (m_showGrid) {
+            sf::ConvexShape tile;
+            tile.setPointCount(4);
+            tile.setPoint(0, sf::Vector2f(0.f, 0.f));
+            tile.setPoint(1, sf::Vector2f(TILE_WIDTH / 2, TILE_HEIGHT / 2));
+            tile.setPoint(2, sf::Vector2f(0.f, TILE_HEIGHT));
+            tile.setPoint(3, sf::Vector2f(-TILE_WIDTH / 2, TILE_HEIGHT / 2));
 
-        tile.setPosition(isoPos);
-        tile.setFillColor(sf::Color(200, 200, 200));
-        tile.setOutlineColor(sf::Color(180, 180, 180));
-        tile.setOutlineThickness(1);
-        m_window.draw(tile);
+            tile.setPosition(isoPos);
+            tile.setFillColor(sf::Color::Transparent); // Only draw outline
+            tile.setOutlineColor(sf::Color(255, 255, 255, 50)); // Faint white lines
+            tile.setOutlineThickness(1);
+            m_window.draw(tile);
+        }
     }
-    // If it's a raised block (Height > 0)
+    // BLOCKS (Height > 0)
     else {
-        // Stack cubes on top of each other
         for (int h = 1; h <= tileHeight; h++) {
             sf::Vector2f blockPos = isoPos;
-            // Shift up by block height for every layer
             blockPos.y -= (h - 1) * BLOCK_HEIGHT;
 
-            // Simple gradient coloring for height
             sf::Color c;
-            if (h == 1)      c = sf::Color(120, 120, 180); // Base
-            else if (h == 2) c = sf::Color(160, 160, 210); // Mid
-            else             c = sf::Color(200, 200, 240); // Top
+            if (h == 1)      c = sf::Color(100, 100, 150);
+            else if (h == 2) c = sf::Color(140, 140, 190);
+            else             c = sf::Color(180, 180, 230);
 
             Cube block(blockPos, c);
             m_window.draw(block);
@@ -118,26 +114,27 @@ void Renderer::renderTile(const Map& map, int x, int y)
 
 void Renderer::renderPlayer(const Player& player, const Map& map, int x, int y)
 {
-    // Calculate precise screen position based on float coordinates
     sf::Vector2f pScreen = IsometricUtils::gridToScreen(player.getPosition().x, player.getPosition().y);
     pScreen += m_cameraOffset;
 
-    // Calculate how high the floor is where the player is standing
-    float currentFloorY = map.getHeight(x, y) * BLOCK_HEIGHT;
+    // We must read the height from the ACTUAL float position to prevent snapping visuals
+    int realX = (int)std::round(player.getPosition().x);
+    int realY = (int)std::round(player.getPosition().y);
 
-    // 1. Draw Shadow (On the floor surface)
+    // Safety clamp
+    realX = std::max(0, std::min(realX, (int)MAP_SIZE - 1));
+    realY = std::max(0, std::min(realY, (int)MAP_SIZE - 1));
+
+    float currentFloorY = map.getHeight(realX, realY) * BLOCK_HEIGHT;
+
+    // Shadow
     sf::CircleShape shadow = player.getShadow();
-    // Shadow stays at the feet level (minus floor height)
     shadow.setPosition(sf::Vector2f(pScreen.x, pScreen.y - currentFloorY));
     m_window.draw(shadow);
 
-    // 2. Draw Player Sprite
+    // Sprite
     const sf::Sprite& sprite = player.getSprite();
     sf::Vector2f spritePos = pScreen;
-
-    // Adjust Sprite Y:
-    // - Move up by floor height (standing on block)
-    // - Move up by Z (Jumping)
     spritePos.y -= (player.getZ() + currentFloorY);
 
     sf::Sprite drawSprite = sprite;

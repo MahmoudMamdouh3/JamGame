@@ -1,7 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "Map.h"
-#include "AnimationComponent.h" // FIXED: Correct filename
+#include "AnimationComponent.h"
 
 class Player {
 public:
@@ -11,7 +11,7 @@ public:
     void handleInput(float dt, const Map& map);
     void update(float dt, const Map& map);
 
-    // Getters for Renderer
+    // Getters
     sf::Vector2f getPosition() const;
     float getZ() const;
     const sf::Sprite& getSprite() const;
@@ -22,17 +22,18 @@ private:
     bool isValidPosition(float x, float y, const Map& map);
 
     // Graphics
-    sf::Texture m_dummyTexture; // Placeholder for sprite init
+    sf::Texture m_dummyTexture;
     sf::Sprite m_sprite;
-    AnimationComponent m_animator; // FIXED: Correct class name
+    AnimationComponent m_animator;
     sf::CircleShape m_shadow;
 
     // State
-    sf::Vector2f m_position; // Grid X, Y
-    float m_z;               // Vertical Z height
+    sf::Vector2f m_position;
+    float m_z;
 
     // Constants
-    const float MOVE_SPEED = 4.0f;
+    const float WALK_SPEED = 4.0f;
+    const float RUN_SPEED = 7.0f; // Shift speed
     const float BLOCK_HEIGHT = 16.0f;
     const int MAP_SIZE = 10;
 };
