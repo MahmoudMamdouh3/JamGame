@@ -32,7 +32,7 @@ Game::Game()
     m_audio.loadSound("vo_L1_intro", "assets/vo_L1_intro.mp3");
 
     // Music
-    m_audio.playMusic("assets/city_theme.ogg");
+    m_audio.playMusic("assets/city_theme.mp3");
 
     m_player.loadAssets();
     m_follower.loadAssets();
