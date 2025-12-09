@@ -1,23 +1,25 @@
 #include "AnimationComponent.h"
 #include <iostream>
 
-AnimationComponent::AnimationComponent(sf::Sprite& spriteRef)
+AnimationComponent::AnimationComponent(sf::Sprite &spriteRef)
     : m_sprite(spriteRef),
-    m_animTimer(0.0f),
-    m_currentFrame(0),
-    m_currentRow(0),
-    m_facingLeft(false)
+      m_animTimer(0.0f),
+      m_currentFrame(0),
+      m_currentRow(0),
+      m_facingLeft(false)
 {
 }
 
-void AnimationComponent::loadAssets() {
+void AnimationComponent::loadAssets(const std::string &texturePath)
+{
     // Load the texture (Update path if necessary)
-    if (!m_texture.loadFromFile("assets/adventurer_sheet.png")) {
+    if (!m_texture.loadFromFile(texturePath))
+    {
         // Fallback: Create a red square if texture fails
         std::cerr << "Error loading player texture!" << std::endl;
-        //sf::Image img;
-       // img.create(FRAME_WIDTH, FRAME_HEIGHT, sf::Color::Red);
-       // m_texture.loadFromImage(img);
+        // sf::Image img;
+        // img.create(FRAME_WIDTH, FRAME_HEIGHT, sf::Color::Red);
+        // m_texture.loadFromImage(img);
     }
 
     m_sprite.setTexture(m_texture);
@@ -30,22 +32,29 @@ void AnimationComponent::loadAssets() {
     m_sprite.setTextureRect(sf::IntRect(sf::Vector2i(0, 0), sf::Vector2i(FRAME_WIDTH, FRAME_HEIGHT)));
 }
 
-void AnimationComponent::update(float dt, sf::Vector2f inputDir) {
+void AnimationComponent::update(float dt, sf::Vector2f inputDir)
+{
     bool moving = (inputDir.x != 0 || inputDir.y != 0);
 
     // 1. Determine Row (State) and Direction
-    if (moving) {
+    if (moving)
+    {
         m_currentRow = 1; // Row 1 is usually "Run" in this spritesheet
 
         // Direction Logic (Isometric adaptation)
         // X-movement dominates facing direction
-        if (inputDir.x < 0) m_facingLeft = true;
-        else if (inputDir.x > 0) m_facingLeft = false;
+        if (inputDir.x < 0)
+            m_facingLeft = true;
+        else if (inputDir.x > 0)
+            m_facingLeft = false;
         // If only moving Y
-        else if (inputDir.y > 0) m_facingLeft = true;
-        else if (inputDir.y < 0) m_facingLeft = false;
+        else if (inputDir.y > 0)
+            m_facingLeft = true;
+        else if (inputDir.y < 0)
+            m_facingLeft = false;
     }
-    else {
+    else
+    {
         m_currentRow = 0; // Row 0 is "Idle"
     }
 
@@ -59,7 +68,8 @@ void AnimationComponent::update(float dt, sf::Vector2f inputDir) {
     int framesInRow = (m_currentRow == 0) ? 4 : 6; // Idle has 4 frames, Run has 6
 
     m_animTimer += dt;
-    if (m_animTimer >= ANIM_FRAME_TIME) {
+    if (m_animTimer >= ANIM_FRAME_TIME)
+    {
         m_animTimer = 0.0f;
         m_currentFrame = (m_currentFrame + 1) % framesInRow;
     }

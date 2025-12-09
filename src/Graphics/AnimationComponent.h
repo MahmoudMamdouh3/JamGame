@@ -1,11 +1,13 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <string>
 #include "Config.h" // Access shared constants like FRAME_WIDTH
 
-class AnimationComponent {
+class AnimationComponent
+{
 private:
     sf::Texture m_texture;
-    sf::Sprite& m_sprite; // Reference to the sprite owned by the Player class
+    sf::Sprite &m_sprite; // Reference to the sprite owned by the Player class
 
     // Animation State
     float m_animTimer;
@@ -15,10 +17,10 @@ private:
 
 public:
     // Constructor takes a reference to the sprite it will control
-    AnimationComponent(sf::Sprite& spriteRef);
+    AnimationComponent(sf::Sprite &spriteRef);
 
-    // Loads the texture and sets initial sprite settings
-    void loadAssets();
+    // Loads the texture and sets initial sprite settings. Pass a custom path for different characters.
+    void loadAssets(const std::string &texturePath = "assets/adventurer_sheet.png");
 
     // Updates the animation frame based on movement direction
     void update(float dt, sf::Vector2f inputDir);
