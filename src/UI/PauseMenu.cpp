@@ -1,8 +1,8 @@
 #include "PauseMenu.h"
-#include "../Core/Config.h" // <--- Correct relative path
+#include "../Core/Config.h" 
 #include <iostream>
 
-PauseMenu::PauseMenu(sf::RenderWindow &window)
+PauseMenu::PauseMenu(sf::RenderWindow& window)
     : m_window(window), m_selectedOption(0), m_selectionMade(false), m_currentState(PauseMenuState::Main), m_optionsMenu(std::make_unique<OptionsMenu>(window))
 {
     if (!m_font.openFromFile(FONT_PATH))
@@ -19,22 +19,22 @@ PauseMenu::PauseMenu(sf::RenderWindow &window)
         m_backgroundSprite.emplace(m_backgroundTexture);
     }
 
-    // Initialize Title Text using unique_ptr
+    // Title
     m_titleText = std::make_unique<sf::Text>(m_font, "PAUSED", 60);
-    // SFML 3 Fix: setPosition requires Vector2f
-    m_titleText->setPosition({WINDOW_WIDTH / 2.f - 100.f, 200.f});
+    m_titleText->setPosition({ WINDOW_WIDTH / 2.f - 100.f, 200.f });
 
-    std::vector<std::string> items = {"Resume", "Restart", "Options", "Menu"};
+    // Options
+    std::vector<std::string> items = { "Resume", "Restart", "Options", "Menu" };
     for (size_t i = 0; i < items.size(); ++i)
     {
         auto text = std::make_unique<sf::Text>(m_font, items[i], 40);
         float optionY = 400.f + i * 60.f;
-        text->setPosition({WINDOW_WIDTH / 2.f - 50.f, optionY});
+        text->setPosition({ WINDOW_WIDTH / 2.f - 50.f, optionY });
         m_options.push_back(std::move(text));
 
-        // Create clickable bounds for each option
-        sf::RectangleShape bounds({250.f, 50.f});
-        bounds.setPosition({WINDOW_WIDTH / 2.f - 125.f, optionY - 5.f});
+        // Click Bounds
+        sf::RectangleShape bounds({ 250.f, 50.f });
+        bounds.setPosition({ WINDOW_WIDTH / 2.f - 125.f, optionY - 5.f });
         bounds.setFillColor(sf::Color::Transparent);
         m_optionBounds.push_back(bounds);
     }
@@ -47,10 +47,12 @@ void PauseMenu::resetSelection()
     m_currentState = PauseMenuState::Main;
 }
 
-void PauseMenu::handleInput(AudioManager &audio)
+// UPDATED: Now handles Audio
+void PauseMenu::handleInput(AudioManager& audio)
 {
     if (m_currentState == PauseMenuState::Options)
     {
+        // Pass audio to sub-menu so volume slider works
         m_optionsMenu->handleInput(audio);
 
         if (m_optionsMenu->isBack())
@@ -65,7 +67,7 @@ void PauseMenu::handleInput(AudioManager &audio)
         static bool downPressed = false;
         static bool enterPressed = false;
 
-        // SFML 3 Fix: sf::Keyboard::Key::Up
+        // Keyboard Navigation
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
         {
             if (!upPressed)
@@ -100,7 +102,6 @@ void PauseMenu::handleInput(AudioManager &audio)
             {
                 audio.playSound("menu_select");
 
-                // Apply selection for keyboard the same way as mouse clicks
                 if (m_selectedOption == 2)
                 {
                     // Open options submenu
@@ -110,10 +111,8 @@ void PauseMenu::handleInput(AudioManager &audio)
                 }
                 else
                 {
-                    // Resume / Restart / Menu
                     m_selectionMade = true;
                 }
-
                 enterPressed = true;
             }
         }
@@ -122,13 +121,14 @@ void PauseMenu::handleInput(AudioManager &audio)
             enterPressed = false;
         }
 
-        // Handle mouse movement for option hover
+        // Mouse Handling
         while (const std::optional event = m_window.pollEvent())
         {
             if (event->is<sf::Event::Closed>())
                 m_window.close();
 
-            if (const auto *mouseMoved = event->getIf<sf::Event::MouseMoved>())
+            // Hover
+            if (const auto* mouseMoved = event->getIf<sf::Event::MouseMoved>())
             {
                 const sf::Vector2f mousePos = m_window.mapPixelToCoords(sf::Vector2i(mouseMoved->position.x, mouseMoved->position.y));
 
@@ -146,8 +146,8 @@ void PauseMenu::handleInput(AudioManager &audio)
                 }
             }
 
-            // Handle mouse clicks
-            if (const auto *mouseButton = event->getIf<sf::Event::MouseButtonPressed>())
+            // Click
+            if (const auto* mouseButton = event->getIf<sf::Event::MouseButtonPressed>())
             {
                 if (mouseButton->button == sf::Mouse::Button::Left)
                 {
@@ -173,15 +173,15 @@ void PauseMenu::render()
             const sf::Vector2u winSize = m_window.getSize();
             if (texSize.x > 0 && texSize.y > 0)
             {
-                m_backgroundSprite->setScale(sf::Vector2f{
+                m_backgroundSprite->setScale({
                     static_cast<float>(winSize.x) / texSize.x,
-                    static_cast<float>(winSize.y) / texSize.y});
+                    static_cast<float>(winSize.y) / texSize.y });
             }
             m_window.draw(*m_backgroundSprite);
         }
 
-        // Draw dark semi-transparent overlay
-        sf::RectangleShape overlay({(float)WINDOW_WIDTH, (float)WINDOW_HEIGHT});
+        // Overlay
+        sf::RectangleShape overlay({ (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT });
         overlay.setFillColor(sf::Color(0, 0, 0, 150));
         m_window.draw(overlay);
 
@@ -200,16 +200,16 @@ void PauseMenu::render()
     }
 }
 
-bool PauseMenu::isMouseOverOption(const sf::RectangleShape &bounds, const sf::Vector2f &mousePos) const
+bool PauseMenu::isMouseOverOption(const sf::RectangleShape& bounds, const sf::Vector2f& mousePos) const
 {
     const sf::Vector2f optionPos = bounds.getPosition();
     const sf::Vector2f optionSize = bounds.getSize();
 
     return mousePos.x >= optionPos.x && mousePos.x <= optionPos.x + optionSize.x &&
-           mousePos.y >= optionPos.y && mousePos.y <= optionPos.y + optionSize.y;
+        mousePos.y >= optionPos.y && mousePos.y <= optionPos.y + optionSize.y;
 }
 
-void PauseMenu::checkMouseClick(const sf::Vector2f &mousePos, AudioManager &audio)
+void PauseMenu::checkMouseClick(const sf::Vector2f& mousePos, AudioManager& audio)
 {
     for (size_t i = 0; i < m_optionBounds.size(); ++i)
     {
@@ -219,7 +219,6 @@ void PauseMenu::checkMouseClick(const sf::Vector2f &mousePos, AudioManager &audi
             m_selectionMade = true;
             audio.playSound("menu_select");
 
-            // If options was selected, transition to options menu
             if ((int)i == 2)
             {
                 m_currentState = PauseMenuState::Options;

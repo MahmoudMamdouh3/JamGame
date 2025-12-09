@@ -1,36 +1,35 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "FollowerAnimator.h"
-#include "Config.h"
-
-class Map;
+#include "../Graphics/FollowerAnimator.h" // Use the new animator
+#include "../World/Map.h"
 
 class Follower
 {
-private:
-    sf::Vector2f m_position;
-    float m_z;
-
-    sf::Texture m_dummyTexture;
-    sf::Sprite m_sprite;
-    sf::CircleShape m_shadow;
-    FollowerAnimator m_animator;
-
-    sf::Vector2i m_targetTile;
-    sf::Vector2f m_targetPos;
-
 public:
     Follower();
 
     void loadAssets();
+    void update(float dt, const Map& map);
 
-    const sf::Vector2f &getPosition() const { return m_position; }
-    float getZ() const { return m_z; }
-    const sf::Sprite &getSprite() const { return m_sprite; }
-    const sf::CircleShape &getShadow() const { return m_shadow; }
+    void setTargetTile(sf::Vector2i tile);
+    void setPosition(sf::Vector2f pos);
 
-    void setTargetTile(const sf::Vector2i &tile);
-    void setPosition(const sf::Vector2f &pos);
+    sf::Vector2f getPosition() const;
+    float getZ() const;
+    const sf::Sprite& getSprite() const;
+    const sf::CircleShape& getShadow() const;
 
-    void update(float dt, const Map &map);
+private:
+    sf::Texture m_dummyTexture;
+    sf::Sprite m_sprite;
+    sf::CircleShape m_shadow;
+
+    // FIX: Use FollowerAnimator instead of AnimationComponent
+    FollowerAnimator m_animator;
+
+    sf::Vector2f m_position;
+    sf::Vector2i m_targetTile;
+    float m_z;
+
+    const float SPEED = 3.8f;
 };

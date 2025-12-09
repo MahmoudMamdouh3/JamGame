@@ -1,9 +1,9 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "PlayerAnimator.h"
-#include "Config.h"
-#include "Map.h"
-#include "AudioManager.h"
+#include "../Graphics/PlayerAnimator.h" // Adjusted path if needed, usually just "PlayerAnimator.h" if in same folder or include path
+#include "../Core/Config.h"
+#include "../World/Map.h"
+#include "../Audio/AudioManager.h"
 
 class Player
 {
@@ -11,18 +11,21 @@ public:
     Player();
 
     void loadAssets();
-    void handleInput(float dt, const Map &map);
-    void update(float dt, const Map &map);
+
+    // UPDATED: Now takes AudioManager& to play sounds
+    void handleInput(float dt, const Map& map, AudioManager& audio);
+
+    void update(float dt, const Map& map);
 
     // Getters
     sf::Vector2f getPosition() const;
     float getZ() const;
-    const sf::Sprite &getSprite() const;
-    const sf::CircleShape &getShadow() const;
+    const sf::Sprite& getSprite() const;
+    const sf::CircleShape& getShadow() const;
 
 private:
     // Helper for collision logic
-    bool isValidPosition(float x, float y, const Map &map);
+    bool isValidPosition(float x, float y, const Map& map);
 
     // Graphics
     sf::Texture m_dummyTexture;
@@ -33,6 +36,9 @@ private:
     // State
     sf::Vector2f m_position;
     float m_z;
+
+    // Audio State
+    float m_stepTimer; // Tracks time between footsteps
 
     // Constants
     const float WALK_SPEED = 4.0f;

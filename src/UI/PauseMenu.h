@@ -3,7 +3,7 @@
 #include <memory>
 #include <optional>
 #include <vector>
-#include "AudioManager.h"
+#include "../Audio/AudioManager.h" // Include full header so we can use it
 #include "OptionsMenu.h"
 
 enum class PauseMenuState
@@ -15,10 +15,10 @@ enum class PauseMenuState
 class PauseMenu
 {
 private:
-    sf::RenderWindow &m_window;
+    sf::RenderWindow& m_window;
     sf::Font m_font;
 
-    // SFML 3 Fix: Use pointers for Text to avoid "no default constructor" error
+    // UI Elements
     std::unique_ptr<sf::Text> m_titleText;
     std::vector<std::unique_ptr<sf::Text>> m_options;
     std::vector<sf::RectangleShape> m_optionBounds;
@@ -30,14 +30,16 @@ private:
     int m_selectedOption;
     bool m_selectionMade;
 
-    // Menu state management
+    // State
     PauseMenuState m_currentState;
     std::unique_ptr<OptionsMenu> m_optionsMenu;
 
 public:
-    PauseMenu(sf::RenderWindow &window);
+    PauseMenu(sf::RenderWindow& window);
 
-    void handleInput(AudioManager &audio);
+    // UPDATED: Now takes AudioManager
+    void handleInput(AudioManager& audio);
+
     void render();
     void resetSelection();
 
@@ -46,6 +48,6 @@ public:
     void clearSelectionMade() { m_selectionMade = false; }
 
 private:
-    bool isMouseOverOption(const sf::RectangleShape &bounds, const sf::Vector2f &mousePos) const;
-    void checkMouseClick(const sf::Vector2f &mousePos, AudioManager &audio);
+    bool isMouseOverOption(const sf::RectangleShape& bounds, const sf::Vector2f& mousePos) const;
+    void checkMouseClick(const sf::Vector2f& mousePos, AudioManager& audio);
 };

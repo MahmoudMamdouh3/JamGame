@@ -1,5 +1,5 @@
 #include "Player.h"
-#include "Map.h"
+#include "../World/Map.h" // Adjusted path to match your structure
 #include <cmath>
 #include <algorithm>
 #include <iostream>
@@ -9,7 +9,8 @@ Player::Player()
     m_sprite(m_dummyTexture),
     m_animator(m_sprite),
     m_position(5.5f, 5.5f),
-    m_z(0.0f)
+    m_z(0.0f),
+    m_stepTimer(0.0f) // Initialize timer
 {
     m_shadow.setRadius(24.f);
     m_shadow.setScale(sf::Vector2f(1.4f, 0.7f));
@@ -22,7 +23,8 @@ void Player::loadAssets()
     m_animator.loadAssets();
 }
 
-void Player::handleInput(float dt, const Map& map)
+// UPDATED: Now accepts AudioManager reference
+void Player::handleInput(float dt, const Map& map, AudioManager& audio)
 {
     sf::Vector2f input(0.f, 0.f);
 
@@ -64,10 +66,25 @@ void Player::handleInput(float dt, const Map& map)
 
         m_position.x = std::clamp(m_position.x, 0.0f, (float)MAP_SIZE - 0.1f);
         m_position.y = std::clamp(m_position.y, 0.0f, (float)MAP_SIZE - 0.1f);
+
+        // --- FOOTSTEP AUDIO LOGIC ---
+        m_stepTimer += dt;
+
+        // Walk = 0.5s, Run = 0.3s between steps
+        float stepInterval = (currentSpeed == RUN_SPEED) ? 0.3f : 0.5f;
+
+        if (m_stepTimer >= stepInterval)
+        {
+            // Play sound (ensure "step" is loaded in Game.cpp, or change to "jump" to test)
+            audio.playSound("step");
+            m_stepTimer = 0.0f;
+        }
     }
     else
     {
         m_animator.update(dt, sf::Vector2f(0.f, 0.f));
+        // Reset timer so next step happens immediately when starting to move
+        m_stepTimer = 0.5f;
     }
 }
 
@@ -95,8 +112,7 @@ bool Player::isValidPosition(float x, float y, const Map& map)
         }
     }
 
-    // 2. NEW: Check Prop Collision
-    // If the center of the player hits a prop, stop.
+    // 2. Check Prop Collision
     if (map.checkPropCollision(x, y)) {
         return false;
     }
