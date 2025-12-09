@@ -2,14 +2,14 @@
 #include <iostream>
 
 Game::Game()
-    : m_window(sf::VideoMode({ (unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT }), GAME_TITLE),
-    m_map(),
-    m_player(),
-    m_renderer(m_window),
-    m_menu(m_window),
-    m_pauseMenu(m_window),
-    m_gameState(GameState::Menu),
-    m_audio()
+    : m_window(sf::VideoMode({(unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT}), GAME_TITLE),
+      m_map(),
+      m_player(),
+      m_renderer(m_window),
+      m_menu(m_window),
+      m_pauseMenu(m_window),
+      m_gameState(GameState::Menu),
+      m_audio()
 {
     m_window.setFramerateLimit(60);
 
@@ -36,9 +36,12 @@ void Game::run()
             if (m_menu.isSelectionMade())
             {
                 int choice = m_menu.getSelectedOption();
-                if (choice == 0) m_gameState = GameState::Playing;
-                else if (choice == 1) std::cout << "Options selected" << std::endl;
-                else if (choice == 2) m_window.close();
+                if (choice == 0)
+                    m_gameState = GameState::Playing;
+                else if (choice == 1)
+                    std::cout << "Options selected" << std::endl;
+                else if (choice == 2)
+                    m_window.close();
 
                 m_menu.resetSelection();
             }
@@ -60,23 +63,32 @@ void Game::run()
                 if (choice == 0)
                 {
                     m_gameState = GameState::Playing;
-                    m_pauseMenu.resetSelection();
                 }
                 else if (choice == 1)
                 {
                     m_map.buildLevel();
+                    // Add character reset or other logic as needed
                     m_gameState = GameState::Playing;
-                    m_pauseMenu.resetSelection();
+                }
+                else if (choice == 2)
+                {
+                    // Options handled internally in PauseMenu, no action needed here
                 }
                 else if (choice == 3)
                 {
                     m_gameState = GameState::Menu;
                     m_menu.resetSelection();
-                    m_pauseMenu.resetSelection();
+                    // Clear any pending events to prevent input bleed
+                    while (m_window.pollEvent())
+                    {
+                    }
                 }
+                m_pauseMenu.resetSelection();
             }
 
+            // Render the game one more time to show as paused background
             render();
+
             m_pauseMenu.render();
             m_window.display();
         }
@@ -90,9 +102,8 @@ void Game::processEvents()
         if (event->is<sf::Event::Closed>())
             m_window.close();
 
-        if (const auto* key = event->getIf<sf::Event::KeyPressed>())
+        if (const auto *key = event->getIf<sf::Event::KeyPressed>())
         {
-            // SFML 3 FIX: Use sf::Keyboard::Key::...
             if (key->code == sf::Keyboard::Key::Escape)
             {
                 m_gameState = GameState::Paused;
@@ -114,11 +125,30 @@ void Game::update(float dt)
 {
     m_audio.update();
     m_player.handleInput(dt, m_map);
-    m_player.update(dt, m_map);
-    m_renderer.update(dt, m_player.getPosition());
+    if (m_gameState == GameState::Playing)
+    {
+        m_player.update(dt, m_map);
+        m_renderer.update(dt, m_player.getPosition());
+    }
+}
+void Game::render()
+{
+    if (m_gameState == GameState::Menu)
+    {
+        renderMenu();
+    }
+    else if (m_gameState == GameState::Playing)
+    {
+        renderGame();
+    }
 }
 
-void Game::render()
+void Game::renderMenu()
+{
+    m_menu.render();
+}
+
+void Game::renderGame()
 {
     m_renderer.render(m_map, m_player);
 }

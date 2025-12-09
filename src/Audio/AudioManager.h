@@ -2,8 +2,10 @@
 #include <SFML/Audio.hpp>
 #include <map>
 #include <string>
+#include <list>
 
-class AudioManager {
+class AudioManager
+{
 private:
     // Sound Effects (RAM)
     std::map<std::string, sf::SoundBuffer> m_buffers;
@@ -18,13 +20,13 @@ public:
     void setMusicVolume(float volume);
 
     // Load a sound effect (e.g., "jump", "assets/jump.wav")
-    void loadSound(const std::string& name, const std::string& filepath);
+    void loadSound(const std::string &name, const std::string &filepath);
 
     // Play a sound effect by name
-    void playSound(const std::string& name);
+    void playSound(const std::string &name);
 
     // Play background music
-    void playMusic(const std::string& filepath);
+    void playMusic(const std::string &filepath);
     void stopMusic();
 
     // Clean up finished sounds to save memory
