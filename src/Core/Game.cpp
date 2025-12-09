@@ -2,14 +2,14 @@
 #include <iostream>
 
 Game::Game()
-    : m_window(sf::VideoMode({(unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT}), GAME_TITLE),
-      m_map(),
-      m_player(),
-      m_renderer(m_window),
-      m_menu(m_window),
-      m_pauseMenu(m_window),
-      m_gameState(GameState::Menu),
-      m_audio()
+    : m_window(sf::VideoMode({ (unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT }), GAME_TITLE),
+    m_map(),
+    m_player(),
+    m_renderer(m_window),
+    m_menu(m_window),
+    m_pauseMenu(m_window),
+    m_gameState(GameState::Menu),
+    m_audio()
 {
     m_window.setFramerateLimit(60);
 
@@ -67,28 +67,24 @@ void Game::run()
                 else if (choice == 1)
                 {
                     m_map.buildLevel();
-                    // Add character reset or other logic as needed
                     m_gameState = GameState::Playing;
                 }
                 else if (choice == 2)
                 {
-                    // Options handled internally in PauseMenu, no action needed here
+                    // Options handled internally
                 }
                 else if (choice == 3)
                 {
                     m_gameState = GameState::Menu;
                     m_menu.resetSelection();
-                    // Clear any pending events to prevent input bleed
-                    while (m_window.pollEvent())
-                    {
-                    }
+                    // Clear pending events
+                    while (m_window.pollEvent()) {}
                 }
                 m_pauseMenu.resetSelection();
             }
 
-            // Render the game one more time to show as paused background
+            // Render game behind pause menu
             render();
-
             m_pauseMenu.render();
             m_window.display();
         }
@@ -102,13 +98,19 @@ void Game::processEvents()
         if (event->is<sf::Event::Closed>())
             m_window.close();
 
-        if (const auto *key = event->getIf<sf::Event::KeyPressed>())
+        if (const auto* key = event->getIf<sf::Event::KeyPressed>())
         {
             if (key->code == sf::Keyboard::Key::Escape)
             {
                 m_gameState = GameState::Paused;
                 m_pauseMenu.resetSelection();
             }
+            // --- NEW: Toggle Grid with 'T' ---
+            else if (key->code == sf::Keyboard::Key::T)
+            {
+                m_renderer.toggleGrid();
+            }
+            // ---------------------------------
             else if (key->code == sf::Keyboard::Key::R)
             {
                 m_map.buildLevel();
@@ -121,16 +123,19 @@ void Game::update(float dt)
 {
     m_audio.update();
     m_player.handleInput(dt, m_map);
+
     if (m_gameState == GameState::Playing)
     {
         m_player.update(dt, m_map);
+        // Pass player position so camera can follow
         m_renderer.update(dt, m_player.getPosition());
 
-        // Debug: Print current tile position
+        // Debug: Print current tile position (Optional, you can remove this later)
         sf::Vector2f playerPos = m_player.getPosition();
-        std::cout << "Player Tile: (" << (int)playerPos.x << ", " << (int)playerPos.y << ")" << std::endl;
+        // std::cout << "Player Tile: (" << (int)playerPos.x << ", " << (int)playerPos.y << ")" << std::endl;
     }
 }
+
 void Game::render()
 {
     if (m_gameState == GameState::Menu)

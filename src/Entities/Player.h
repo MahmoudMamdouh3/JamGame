@@ -35,5 +35,5 @@ private:
     const float WALK_SPEED = 4.0f;
     const float RUN_SPEED = 7.0f; // Shift speed
     const float BLOCK_HEIGHT = 16.0f;
-    const int MAP_SIZE = 10;
+    const int MAP_SIZE = 20;
 };
