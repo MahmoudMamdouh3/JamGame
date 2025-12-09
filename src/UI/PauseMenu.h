@@ -1,7 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <vector>
 #include <memory>
+#include <optional>
+#include <vector>
 #include "AudioManager.h"
 #include "OptionsMenu.h"
 
@@ -21,6 +22,10 @@ private:
     std::unique_ptr<sf::Text> m_titleText;
     std::vector<std::unique_ptr<sf::Text>> m_options;
     std::vector<sf::RectangleShape> m_optionBounds;
+
+    // Background
+    sf::Texture m_backgroundTexture;
+    std::optional<sf::Sprite> m_backgroundSprite;
 
     int m_selectedOption;
     bool m_selectionMade;

@@ -1,8 +1,8 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <vector>
-#include <string>
 #include <memory>
+#include <optional>
+#include <string>
 #include "OptionsMenu.h"
 
 enum class MenuState
@@ -20,20 +20,20 @@ private:
     int m_selectedOption;
     bool m_selectionMade;
 
-    // Main menu button positions and sizes
-    sf::RectangleShape m_startButton;
-    sf::RectangleShape m_optionsButton;
-    sf::RectangleShape m_exitButton;
+    // Background
+    sf::Texture m_backgroundTexture;
+    std::optional<sf::Sprite> m_backgroundSprite;
 
-    sf::Font m_font;
-    std::unique_ptr<sf::Text> m_startText;
-    std::unique_ptr<sf::Text> m_optionsText;
-    std::unique_ptr<sf::Text> m_exitText;
-    std::unique_ptr<sf::Text> m_gameNameText;
-
-    // Title textbox
-    sf::RectangleShape m_titleBox;
-    std::vector<std::unique_ptr<sf::Text>> m_titleLines;
+    // Button textures and sprites
+    sf::Texture m_startTexture;
+    sf::Texture m_optionsTexture;
+    sf::Texture m_exitTexture;
+    std::optional<sf::Sprite> m_startSprite;
+    std::optional<sf::Sprite> m_optionsSprite;
+    std::optional<sf::Sprite> m_exitSprite;
+    std::optional<sf::Vector2f> m_startBaseScale;
+    std::optional<sf::Vector2f> m_optionsBaseScale;
+    std::optional<sf::Vector2f> m_exitBaseScale;
 
     sf::Vector2u m_lastWindowSize{};
 
@@ -41,9 +41,9 @@ private:
     std::unique_ptr<OptionsMenu> m_optionsMenu;
 
     // Colors
-    const sf::Color m_buttonColor = sf::Color::White;
-    const sf::Color m_selectedColor = sf::Color::Yellow;
-    const sf::Color m_textColor = sf::Color::Black;
+    const sf::Color m_buttonColor = sf::Color(220, 220, 220);
+    const sf::Color m_selectedColor = sf::Color::White;
+    const float m_highlightScale = 1.12f;
 
 public:
     Menu(sf::RenderWindow &window);
@@ -62,13 +62,9 @@ public:
     }
 
 private:
-    void setupButtons();
-    void setupText();
-    void setupTitleBox();
+    void setupAssets();
     void updateLayout();
-    void updateTextPositions();
     void updateButtonSelection();
-    bool isMouseOverButton(const sf::RectangleShape &button, const sf::Vector2f &mousePos) const;
+    bool isMouseOverButton(const std::optional<sf::Sprite> &button, const sf::Vector2f &mousePos) const;
     void checkMouseClick(const sf::Vector2f &mousePos);
-    void wrapTextInBox(const std::string &text, float boxWidth, float charSize);
 };
