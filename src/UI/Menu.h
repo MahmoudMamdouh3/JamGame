@@ -5,6 +5,9 @@
 #include <string>
 #include "OptionsMenu.h"
 
+// Forward declaration prevents circular dependency issues
+class AudioManager;
+
 enum class MenuState
 {
     Main,
@@ -15,7 +18,7 @@ enum class MenuState
 class Menu
 {
 private:
-    sf::RenderWindow &m_window;
+    sf::RenderWindow& m_window;
     MenuState m_currentState;
     int m_selectedOption;
     bool m_selectionMade;
@@ -46,15 +49,20 @@ private:
     const float m_highlightScale = 1.12f;
 
 public:
-    Menu(sf::RenderWindow &window);
+    Menu(sf::RenderWindow& window);
 
-    void handleInput(AudioManager &audio);
+    // UPDATED: Now takes AudioManager to play sounds
+    void handleInput(AudioManager& audio);
+
     void render();
 
     MenuState getCurrentState() const { return m_currentState; }
     int getSelectedOption() const { return m_selectedOption; }
     bool isSelectionMade() const { return m_selectionMade; }
+
+    // Pass-through to options volume
     float getVolume() const { return m_optionsMenu->getVolumeLevel(); }
+
     void resetSelection()
     {
         m_selectionMade = false;
@@ -65,6 +73,6 @@ private:
     void setupAssets();
     void updateLayout();
     void updateButtonSelection();
-    bool isMouseOverButton(const std::optional<sf::Sprite> &button, const sf::Vector2f &mousePos) const;
-    void checkMouseClick(const sf::Vector2f &mousePos);
+    bool isMouseOverButton(const std::optional<sf::Sprite>& button, const sf::Vector2f& mousePos) const;
+    void checkMouseClick(const sf::Vector2f& mousePos, AudioManager& audio);
 };

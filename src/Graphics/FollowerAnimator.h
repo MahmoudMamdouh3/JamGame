@@ -4,13 +4,14 @@
 class FollowerAnimator : public CharacterAnimator
 {
 public:
-    explicit FollowerAnimator(sf::Sprite &spriteRef);
+    FollowerAnimator(sf::Sprite& spriteRef);
 
     // void update(float dt, sf::Vector2f inputDir) override;
 
 protected:
-    std::string down_texturePath() const override;
-    std::string up_texturePath() const override;
-    std::string left_texturePath() const override;
-    std::string right_texturePath() const override;
+    // Define the cat/follower specific texture paths here
+    virtual std::string down_texturePath() const override;
+    virtual std::string up_texturePath() const override;
+    virtual std::string left_texturePath() const override;
+    virtual std::string right_texturePath() const override;
 };

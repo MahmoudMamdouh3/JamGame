@@ -4,12 +4,12 @@
 #include <string>
 #include <memory>
 #include <optional>
-#include "AudioManager.h" // Required for audio integration
+#include "../Audio/AudioManager.h" // Ensure this path is correct
 
 class OptionsMenu
 {
 private:
-    sf::RenderWindow &m_window;
+    sf::RenderWindow& m_window;
     sf::Font m_font;
 
     // Options menu state
@@ -23,16 +23,19 @@ private:
     sf::Texture m_soundTexture;
     std::optional<sf::Sprite> m_soundSprite;
 
-    // Volume slider (draggable handle)
+    // Volume slider
     sf::Texture m_volumeSliderHandleTexture;
     std::optional<sf::Sprite> m_volumeSliderHandleSprite;
     sf::Texture m_volumeSliderBackgroundTexture;
     std::optional<sf::Sprite> m_volumeSliderBackgroundSprite;
-    std::unique_ptr<sf::Text> m_volumeValueText;
-    float m_sliderTrackLeft = 500.f;  // Start position of slider track
-    float m_sliderTrackWidth = 200.f; // Width of draggable area
 
-    // Fullscreen button with on/off overlay
+    // SFML 3: Use unique_ptr for Text to avoid initialization issues
+    std::unique_ptr<sf::Text> m_volumeValueText;
+
+    float m_sliderTrackLeft = 500.f;
+    float m_sliderTrackWidth = 200.f;
+
+    // Fullscreen button
     sf::Texture m_fullscreenButtonTexture;
     std::optional<sf::Sprite> m_fullscreenButtonSprite;
     sf::Texture m_onTexture;
@@ -59,10 +62,10 @@ private:
     bool m_isFullscreen;
 
 public:
-    OptionsMenu(sf::RenderWindow &window);
+    OptionsMenu(sf::RenderWindow& window);
 
-    // UPDATED: Now takes AudioManager to play sounds
-    void handleInput(AudioManager &audio);
+    // Audio passed by reference
+    void handleInput(AudioManager& audio);
 
     void render();
 
@@ -81,8 +84,8 @@ private:
     void setupUI();
     void updateSelection();
 
-    // UPDATED: Takes AudioManager pointer to update music volume in real-time
-    void updateVolumeDisplay(AudioManager *audio = nullptr);
+    // Internal helper to update text and audio engine
+    void updateVolumeDisplay(AudioManager* audio = nullptr);
 
     void toggleFullscreen();
     void applyWindowSettings();

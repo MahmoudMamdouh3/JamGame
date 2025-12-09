@@ -3,32 +3,36 @@
 #include <map>
 #include <string>
 #include <list>
+#include <vector>
+#include <optional> // Added for SFML 3 compatibility
 
 class AudioManager
 {
 private:
     // Sound Effects (RAM)
     std::map<std::string, sf::SoundBuffer> m_buffers;
-    std::list<sf::Sound> m_sounds; // List to handle overlapping sounds
+    std::list<sf::Sound> m_sounds;
+
+    // Voice / Dialogue (RAM)
+    // SFML 3 Fix: Wrapped in optional because sf::Sound now requires a buffer at construction
+    std::optional<sf::Sound> m_voiceSource;
 
     // Music (Streamed)
     sf::Music m_music;
 
+    // Ambient System
+    std::vector<std::string> m_ambientKeys;
+    float m_ambientTimer;
+
 public:
     AudioManager();
-    // Add this under the public section of AudioManager.h
+
     void setMusicVolume(float volume);
-
-    // Load a sound effect (e.g., "jump", "assets/jump.wav")
-    void loadSound(const std::string &name, const std::string &filepath);
-
-    // Play a sound effect by name
-    void playSound(const std::string &name);
-
-    // Play background music
-    void playMusic(const std::string &filepath);
+    void loadSound(const std::string& name, const std::string& filepath);
+    void playSound(const std::string& name);
+    void playMusic(const std::string& filepath);
     void stopMusic();
-
-    // Clean up finished sounds to save memory
-    void update();
+    void playDialogue(const std::string& name);
+    void addAmbientSound(const std::string& name);
+    void update(float dt);
 };

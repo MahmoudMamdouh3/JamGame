@@ -2,23 +2,36 @@
 #include <iostream>
 
 Game::Game()
-    : m_window(sf::VideoMode({(unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT}), GAME_TITLE),
-      m_map(),
-      m_player(),
-      m_follower(),
-      m_renderer(m_window),
-      m_menu(m_window),
-      m_pauseMenu(m_window),
-      m_gameState(GameState::Menu),
-      m_audio(),
-      m_lastPlayerTile(0, 0)
+    : m_window(sf::VideoMode({ (unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT }), GAME_TITLE),
+    m_audio(),
+    m_map(),
+    m_player(),
+    m_follower(),
+    m_renderer(m_window),
+    m_menu(m_window),
+    m_pauseMenu(m_window),
+    m_gameState(GameState::Menu),
+    m_lastPlayerTile(0, 0)
 {
     m_window.setFramerateLimit(60);
 
-    m_audio.loadSound("jump", "assets/jump.wav");
+    // --- AUDIO SETUP ---
+    // Ensure these files exist in your assets folder!
+    m_audio.loadSound("jump", "assets/jump.mp3");
     m_audio.loadSound("menu_move", "assets/blip.wav");
     m_audio.loadSound("menu_select", "assets/select.wav");
+    // m_audio.loadSound("step", "assets/step.mp3"); 
 
+    // Ambience
+    m_audio.loadSound("amb_traffic", "assets/alex_traffic.mp3");
+    m_audio.loadSound("amb_sea", "assets/alex_sea.mp3");
+    m_audio.addAmbientSound("amb_traffic");
+    m_audio.addAmbientSound("amb_sea");
+
+    // Cat Voice (Example)
+    m_audio.loadSound("vo_L1_intro", "assets/vo_L1_intro.mp3");
+
+    // Music
     m_audio.playMusic("assets/city_theme.ogg");
 
     m_player.loadAssets();
@@ -44,10 +57,10 @@ void Game::run()
             if (m_menu.isSelectionMade())
             {
                 int choice = m_menu.getSelectedOption();
-                if (choice == 0)
+                if (choice == 0) {
                     m_gameState = GameState::Playing;
-                else if (choice == 1)
-                    std::cout << "Options selected" << std::endl;
+                    // m_audio.playDialogue("vo_L1_intro"); 
+                }
                 else if (choice == 2)
                     m_window.close();
 
@@ -68,32 +81,18 @@ void Game::run()
             if (m_pauseMenu.isSelectionMade())
             {
                 int choice = m_pauseMenu.getSelectedOption();
-                if (choice == 0)
-                {
-                    m_gameState = GameState::Playing;
-                }
-                else if (choice == 1)
-                {
+                if (choice == 0) m_gameState = GameState::Playing;
+                else if (choice == 1) {
                     m_map.buildLevel();
                     m_gameState = GameState::Playing;
                 }
-                else if (choice == 2)
-                {
-                    // Options handled internally
-                }
-                else if (choice == 3)
-                {
+                else if (choice == 3) {
                     m_gameState = GameState::Menu;
                     m_menu.resetSelection();
-                    // Clear pending events
-                    while (m_window.pollEvent())
-                    {
-                    }
+                    while (m_window.pollEvent()) {}
                 }
                 m_pauseMenu.resetSelection();
             }
-
-            // Render game behind pause menu
             render();
             m_pauseMenu.render();
             m_window.display();
@@ -108,19 +107,17 @@ void Game::processEvents()
         if (event->is<sf::Event::Closed>())
             m_window.close();
 
-        if (const auto *key = event->getIf<sf::Event::KeyPressed>())
+        if (const auto* key = event->getIf<sf::Event::KeyPressed>())
         {
             if (key->code == sf::Keyboard::Key::Escape)
             {
                 m_gameState = GameState::Paused;
                 m_pauseMenu.resetSelection();
             }
-            // --- NEW: Toggle Grid with 'T' ---
             else if (key->code == sf::Keyboard::Key::T)
             {
                 m_renderer.toggleGrid();
             }
-            // ---------------------------------
             else if (key->code == sf::Keyboard::Key::R)
             {
                 m_map.buildLevel();
@@ -131,8 +128,8 @@ void Game::processEvents()
 
 void Game::update(float dt)
 {
-    m_audio.update();
-    m_player.handleInput(dt, m_map);
+    m_audio.update(dt);
+    m_player.handleInput(dt, m_map, m_audio);
 
     if (m_gameState == GameState::Playing)
     {
@@ -146,31 +143,14 @@ void Game::update(float dt)
         m_player.update(dt, m_map);
         m_follower.update(dt, m_map);
         m_renderer.update(dt, m_player.getPosition());
-
-        // // Debug: Print current tile position
-        // sf::Vector2f playerPos = m_player.getPosition();
-        // std::cout << "Player Tile: (" << (int)playerPos.x << ", " << (int)playerPos.y << ")" << std::endl;
     }
 }
 
 void Game::render()
 {
-    if (m_gameState == GameState::Menu)
-    {
-        renderMenu();
-    }
-    else if (m_gameState == GameState::Playing)
-    {
-        renderGame();
-    }
+    if (m_gameState == GameState::Menu) renderMenu();
+    else if (m_gameState == GameState::Playing) renderGame();
 }
 
-void Game::renderMenu()
-{
-    m_menu.render();
-}
-
-void Game::renderGame()
-{
-    m_renderer.render(m_map, m_player, m_follower);
-}
+void Game::renderMenu() { m_menu.render(); }
+void Game::renderGame() { m_renderer.render(m_map, m_player, m_follower); }
