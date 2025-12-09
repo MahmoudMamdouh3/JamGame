@@ -109,10 +109,6 @@ void Game::processEvents()
                 m_gameState = GameState::Paused;
                 m_pauseMenu.resetSelection();
             }
-            else if (key->code == sf::Keyboard::Key::Space)
-            {
-                m_player.jump(m_map, m_audio);
-            }
             else if (key->code == sf::Keyboard::Key::R)
             {
                 m_map.buildLevel();

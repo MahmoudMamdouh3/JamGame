@@ -19,7 +19,7 @@ void AnimationComponent::loadAssets() {
     m_sprite.setTexture(m_texture);
 
     // Origin at feet (Center X, Bottom Y)
-    m_sprite.setOrigin(sf::Vector2f(FRAME_WIDTH / 2.0f, (float)FRAME_HEIGHT - 4.0f));
+    m_sprite.setOrigin(sf::Vector2f(FRAME_WIDTH / 2.0f, (float)FRAME_HEIGHT));
     m_sprite.setScale(sf::Vector2f(SPRITE_SCALE, SPRITE_SCALE));
 
     // Start at Row 0, Frame 0 (Bottom Right Idle)
@@ -30,52 +30,31 @@ void AnimationComponent::update(float dt, sf::Vector2f inputDir) {
     bool moving = (inputDir.x != 0 || inputDir.y != 0);
 
     if (moving) {
-        // --- 1. DETERMINE DIRECTION ROW ---
-        // Row 0: Bottom Right ( x > 0, y > 0 )
-        // Row 1: Top Right    ( x > 0, y < 0 )
-        // Row 2: Bottom Left  ( x < 0, y > 0 )
-        // Row 3: Top Left     ( x < 0, y < 0 )
+        // --- 1. DETERMINE ROW BASED ON GRID INPUT ---
 
-        if (inputDir.x > 0) {
-            if (inputDir.y < 0) m_currentRow = 1;      // Up-Right
-            else                m_currentRow = 0;      // Down-Right or just Right
-        }
-        else if (inputDir.x < 0) {
-            if (inputDir.y < 0) m_currentRow = 3;      // Up-Left
-            else                m_currentRow = 2;      // Down-Left or just Left
-        }
-        else {
-            // Moving purely vertical
-            if (inputDir.y < 0) m_currentRow = 3;      // Up (Use Top-Left)
-            else                m_currentRow = 0;      // Down (Use Bottom-Right)
-        }
+        // Priority: Check X movement first, then Y.
+        // If moving diagonally (W+D), this logic prioritizes X-axis facing.
+
+        if (inputDir.x > 0.1f)      m_currentRow = 0; // D -> Grid X+ -> Bottom Right
+        else if (inputDir.x < -0.1f) m_currentRow = 3; // A -> Grid X- -> Top Left
+        else if (inputDir.y > 0.1f)  m_currentRow = 2; // S -> Grid Y+ -> Bottom Left
+        else if (inputDir.y < -0.1f) m_currentRow = 1; // W -> Grid Y- -> Top Right
 
         // --- 2. ANIMATE ---
         m_animTimer += dt;
         if (m_animTimer >= ANIM_FRAME_TIME) {
             m_animTimer = 0.0f;
-            // Loop through all 8 frames
             m_currentFrame = (m_currentFrame + 1) % FRAMES_PER_ROW;
         }
     }
     else {
-        // --- 3. IDLE STATE ---
-        // User requested: Row 0 (Bottom Right), Frame 0 to be the "Still" state.
-
-        // Option A: Always revert to Bottom Right when idle
-        m_currentRow = 0;
+        // --- 3. IDLE ---
         m_currentFrame = 0;
-
-        // Option B (Better feel): Keep the last direction, but reset to frame 0
-        // If you prefer Option A (strict user request), keep the line above.
-        // If you want him to face the way he was walking when he stops, comment out 'm_currentRow = 0;'
-
-        m_currentFrame = 0; // Force first frame (Standing still)
-        m_animTimer = 0.0f; // Reset timer so he doesn't twitch
+        m_animTimer = 0.0f;
+        // Note: We keep m_currentRow as is, so he faces the last direction he walked.
     }
 
     // --- 4. APPLY TEXTURE RECT ---
-    // Ensure Scale is positive (No flipping needed anymore since we have 4 rows)
     m_sprite.setScale(sf::Vector2f(SPRITE_SCALE, SPRITE_SCALE));
 
     int left = m_currentFrame * FRAME_WIDTH;

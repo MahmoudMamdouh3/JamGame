@@ -3,101 +3,136 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
-#include "AudioManager.h" // Needed for jump()
 
 Player::Player()
     : m_dummyTexture(),
-      m_sprite(m_dummyTexture),
-      m_animator(m_sprite),
-      m_position(MAP_SIZE / 2.0f, MAP_SIZE / 2.0f),
-      m_z(0.0f),
-      m_velocityZ(0.0f)
+    m_sprite(m_dummyTexture),
+    m_animator(m_sprite), // Passes the sprite to AnimationComponent
+    m_position(5.5f, 5.5f),
+    m_z(0.0f)
 {
-    m_shadow.setRadius(12.f);
-    m_shadow.setScale(sf::Vector2f(1.f, 0.5f));
-    m_shadow.setFillColor(sf::Color(0, 0, 0, 80));
-    m_shadow.setOrigin(sf::Vector2f(12.f, 12.f));
+    // --- SHADOW SETUP ---
+    m_shadow.setRadius(24.f);
+    m_shadow.setScale(sf::Vector2f(1.4f, 0.7f));
+    m_shadow.setFillColor(sf::Color(0, 0, 0, 100));
+    m_shadow.setOrigin(sf::Vector2f(24.f, 24.f));
 }
 
 void Player::loadAssets()
 {
+    // Load the animation sheet via the component
     m_animator.loadAssets();
 }
 
-void Player::handleInput(float dt, const Map &map)
+void Player::handleInput(float dt, const Map& map)
 {
-    sf::Vector2f move(0.f, 0.f);
+    sf::Vector2f input(0.f, 0.f);
+
+    // Input Handling
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
-        move.y -= 1;
+        input.y -= 1.0f;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
-        move.y += 1;
+        input.y += 1.0f;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-        move.x -= 1;
+        input.x -= 1.0f;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-        move.x += 1;
+        input.x += 1.0f;
 
-    if (move.x != 0 || move.y != 0)
+    if (input.x != 0 || input.y != 0)
     {
-        float len = std::sqrt(move.x * move.x + move.y * move.y);
-        move /= len;
-        sf::Vector2f animDir = move;
-        move *= MOVE_SPEED * dt;
+        // Normalize
+        float len = std::sqrt(input.x * input.x + input.y * input.y);
+        input /= len;
 
-        sf::Vector2f nextPos = m_position + move;
-        sf::Vector2f checkPos = nextPos;
-        if (move.x > 0)
-            checkPos.x += COLLISION_BIAS;
-        if (move.x < 0)
-            checkPos.x -= COLLISION_BIAS;
-        if (move.y > 0)
-            checkPos.y += COLLISION_BIAS;
-        if (move.y < 0)
-            checkPos.y -= COLLISION_BIAS;
+        // Update Animation (Walk)
+        m_animator.update(dt, input);
 
-        int gridX = std::clamp((int)checkPos.x, 0, MAP_SIZE - 1);
-        int gridY = std::clamp((int)checkPos.y, 0, MAP_SIZE - 1);
-        float obstacleHeight = map.getHeight(gridX, gridY) * BLOCK_HEIGHT;
+        // Apply Speed
+        sf::Vector2f velocity = input * MOVE_SPEED * dt;
 
-        if (m_z >= obstacleHeight - 5.0f)
-        {
-            m_position = nextPos;
+        // --- COLLISION ---
+        // 1. Try X Move
+        float nextX = m_position.x + velocity.x;
+        if (isValidPosition(nextX, m_position.y, map)) {
+            m_position.x = nextX;
         }
 
+        // 2. Try Y Move
+        float nextY = m_position.y + velocity.y;
+        if (isValidPosition(m_position.x, nextY, map)) {
+            m_position.y = nextY;
+        }
+
+        // Clamp to map bounds
         m_position.x = std::clamp(m_position.x, 0.0f, (float)MAP_SIZE - 0.1f);
         m_position.y = std::clamp(m_position.y, 0.0f, (float)MAP_SIZE - 0.1f);
-        m_animator.update(dt, animDir);
     }
     else
     {
+        // Update Animation (Idle)
         m_animator.update(dt, sf::Vector2f(0.f, 0.f));
     }
 }
 
-void Player::update(float dt, const Map &map)
+bool Player::isValidPosition(float x, float y, const Map& map)
 {
-    int cx = (int)m_position.x;
-    int cy = (int)m_position.y;
-    float floorLevel = map.getHeight(cx, cy) * BLOCK_HEIGHT;
-    m_z += m_velocityZ * dt;
-    m_velocityZ -= GRAVITY * dt;
+    float margin = 0.25f;
 
-    if (m_z <= floorLevel)
-    {
-        m_z = floorLevel;
-        m_velocityZ = 0;
+    // Check 4 corners of the player's bounding box
+    float corners[4][2] = {
+        {x - margin, y - margin},
+        {x + margin, y - margin},
+        {x - margin, y + margin},
+        {x + margin, y + margin}
+    };
+
+    for (auto& p : corners) {
+        int gx = std::clamp((int)p[0], 0, MAP_SIZE - 1);
+        int gy = std::clamp((int)p[1], 0, MAP_SIZE - 1);
+
+        float myFloor = map.getHeight((int)m_position.x, (int)m_position.y) * BLOCK_HEIGHT;
+        float targetFloor = map.getHeight(gx, gy) * BLOCK_HEIGHT;
+
+        // Wall check: Cannot step up more than 10 units
+        if (targetFloor > myFloor + 10.0f) {
+            return false;
+        }
     }
+    return true;
 }
 
-// FIXED: Now accepts AudioManager to play sound
-void Player::jump(const Map &map, AudioManager &audio)
+void Player::update(float dt, const Map& map)
 {
-    int cx = (int)m_position.x;
-    int cy = (int)m_position.y;
-    float currentFloor = map.getHeight(cx, cy) * BLOCK_HEIGHT;
+    // Snap Z to floor (Ground snapping logic)
+    int cx = (int)(m_position.x + 0.5f);
+    int cy = (int)(m_position.y + 0.5f);
 
-    if (std::abs(m_z - currentFloor) < 5.0f)
-    {
-        m_velocityZ = JUMP_FORCE;
-        audio.playSound("jump");
-    }
+    cx = std::clamp(cx, 0, MAP_SIZE - 1);
+    cy = std::clamp(cy, 0, MAP_SIZE - 1);
+
+    float targetZ = map.getHeight(cx, cy) * BLOCK_HEIGHT;
+
+    // Smoothly adjust height
+    if (m_z < targetZ) m_z += 500.0f * dt;
+    else m_z = targetZ;
+
+    if (std::abs(m_z - targetZ) < 2.0f) m_z = targetZ;
+}
+
+// --- GETTERS ---
+
+sf::Vector2f Player::getPosition() const {
+    return m_position;
+}
+
+float Player::getZ() const {
+    return m_z;
+}
+
+const sf::Sprite& Player::getSprite() const {
+    return m_sprite;
+}
+
+const sf::CircleShape& Player::getShadow() const {
+    return m_shadow;
 }
