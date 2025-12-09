@@ -32,7 +32,7 @@ const int MAP_SIZE = 16;
 // --- PHYSICS ---
 const float GRAVITY = 2000.0f;
 const float JUMP_FORCE = 550.0f;
-const float MOVE_SPEED = 6.0f;
+const float MOVE_SPEED = 3.5f;
 const float COLLISION_BIAS = 0.3f;
 
 // --- ANIMATION SETTINGS (The fixes we made previously) ---
@@ -47,6 +47,6 @@ const int FRAME_WIDTH = TEXTURE_WIDTH / FRAMES_PER_ROW;
 const int FRAME_HEIGHT = TEXTURE_HEIGHT / ROWS_IN_SHEET;
 
 // Sprite scale (0.35f usually works well for 2048x1024 sheets on these tiles)
-const float SPRITE_SCALE = 0.35f;
+const float SPRITE_SCALE = 0.65f;
 
 const float ANIM_FRAME_TIME = 0.12f;
