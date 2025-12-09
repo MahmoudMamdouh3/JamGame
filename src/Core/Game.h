@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "Player.h"
+#include "Follower.h"
 #include "Map.h"
 #include "Renderer.h"
 #include "UI\Menu.h"
@@ -21,6 +22,7 @@ private:
     // Core Game Systems
     Map m_map;
     Player m_player;
+    Follower m_follower;
     Renderer m_renderer;
 
     // UI Systems
@@ -30,6 +32,8 @@ private:
     // State & Audio
     GameState m_gameState;
     AudioManager m_audio;
+
+    sf::Vector2i m_lastPlayerTile;
 
     void processEvents();
     void update(float dt);

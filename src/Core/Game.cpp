@@ -5,11 +5,13 @@ Game::Game()
     : m_window(sf::VideoMode({(unsigned int)WINDOW_WIDTH, (unsigned int)WINDOW_HEIGHT}), GAME_TITLE),
       m_map(),
       m_player(),
+      m_follower(),
       m_renderer(m_window),
       m_menu(m_window),
       m_pauseMenu(m_window),
       m_gameState(GameState::Menu),
-      m_audio()
+      m_audio(),
+      m_lastPlayerTile(0, 0)
 {
     m_window.setFramerateLimit(60);
 
@@ -20,7 +22,13 @@ Game::Game()
     m_audio.playMusic("assets/city_theme.ogg");
 
     m_player.loadAssets();
+    m_follower.loadAssets();
     m_map.buildLevel();
+
+    sf::Vector2f playerStart = m_player.getPosition();
+    m_lastPlayerTile = sf::Vector2i(static_cast<int>(playerStart.x), static_cast<int>(playerStart.y));
+    m_follower.setPosition(playerStart);
+    m_follower.setTargetTile(m_lastPlayerTile);
 }
 
 void Game::run()
@@ -127,12 +135,20 @@ void Game::update(float dt)
     m_player.handleInput(dt, m_map);
     if (m_gameState == GameState::Playing)
     {
+        sf::Vector2i currentTile(static_cast<int>(m_player.getPosition().x), static_cast<int>(m_player.getPosition().y));
+        if (currentTile != m_lastPlayerTile)
+        {
+            m_follower.setTargetTile(m_lastPlayerTile);
+            m_lastPlayerTile = currentTile;
+        }
+
         m_player.update(dt, m_map);
+        m_follower.update(dt, m_map);
         m_renderer.update(dt, m_player.getPosition());
 
-        // Debug: Print current tile position
-        sf::Vector2f playerPos = m_player.getPosition();
-        std::cout << "Player Tile: (" << (int)playerPos.x << ", " << (int)playerPos.y << ")" << std::endl;
+        // // Debug: Print current tile position
+        // sf::Vector2f playerPos = m_player.getPosition();
+        // std::cout << "Player Tile: (" << (int)playerPos.x << ", " << (int)playerPos.y << ")" << std::endl;
     }
 }
 void Game::render()
@@ -154,5 +170,5 @@ void Game::renderMenu()
 
 void Game::renderGame()
 {
-    m_renderer.render(m_map, m_player);
+    m_renderer.render(m_map, m_player, m_follower);
 }

@@ -45,6 +45,18 @@ file(GLOB_RECURSE SOURCES
 
 add_executable(JamGame ${SOURCES})
 
+# Ensure new entities are always built even if glob cache is stale
+target_sources(JamGame PRIVATE
+    src/Entities/Follower.cpp
+    src/Entities/Follower.h
+    src/Graphics/CharacterAnimator.cpp
+    src/Graphics/CharacterAnimator.h
+    src/Graphics/PlayerAnimator.cpp
+    src/Graphics/PlayerAnimator.h
+    src/Graphics/FollowerAnimator.cpp
+    src/Graphics/FollowerAnimator.h
+)
+
 # 4. Linking
 target_link_libraries(JamGame PRIVATE SFML::Graphics SFML::Window SFML::System SFML::Audio box2d glad)
 
