@@ -1,53 +1,40 @@
 #include "Map.h"
-#include <cstdlib>
+#include <cstring> 
 
 Map::Map()
 {
-    buildLevel();
+    std::memset(m_heights, 0, sizeof(m_heights));
 }
 
 void Map::buildLevel()
 {
-    // 1. Fill ground
+    m_props.clear();
+
+    // Reset ground
     for (int x = 0; x < MAP_SIZE; x++)
         for (int y = 0; y < MAP_SIZE; y++)
-            m_heights[x][y] = 0; // Ground level
+            m_heights[x][y] = 0;
 
-    // 2. Random City Generator
-    // Create 40 random buildings
-    for (int i = 0; i < 40; i++)
-    {
-        int bx = rand() % (MAP_SIZE - 4);
-        int by = rand() % (MAP_SIZE - 4);
-        int w = (rand() % 4) + 1;      // Width 1-4
-        int h = (rand() % 4) + 1;      // Depth 1-4
-        int height = (rand() % 3) + 1; // Height 1-3 blocks
-
-        for (int x = bx; x < bx + w; x++)
-        {
-            for (int y = by; y < by + h; y++)
-            {
-                if (x < MAP_SIZE && y < MAP_SIZE)
-                {
-                    m_heights[x][y] = height;
-                }
-            }
-        }
-    }
-
-    // Ensure player start position is flat (so you don't spawn inside a wall)
-    int center = MAP_SIZE / 2;
-    m_heights[center][center] = 0;
-    m_heights[center + 1][center] = 0;
-    m_heights[center][center + 1] = 0;
-    m_heights[center + 1][center + 1] = 0;
+    // FIX: Use std::make_unique to create props
+    m_props.push_back(std::make_unique<Prop>(5.0f, 2.0f, "assets/ENV Sketch 2.png", 0.5f));
+    m_props.push_back(std::make_unique<Prop>(8.0f, 8.0f, "assets/ENV Sketch 3.png", 0.5f));
+    // Add as many as you want, they won't crash now
 }
 
 int Map::getHeight(int x, int y) const
 {
-    if (x >= 0 && x < MAP_SIZE && y >= 0 && y < MAP_SIZE)
+    if (x < 0 || x >= MAP_SIZE || y < 0 || y >= MAP_SIZE) return 0;
+    return m_heights[x][y];
+}
+
+bool Map::checkPropCollision(float x, float y) const
+{
+    // Loop through pointers
+    for (const auto& prop : m_props)
     {
-        return m_heights[x][y];
+        // Use '->' because 'prop' is a pointer now
+        if (prop->isColliding(x, y))
+            return true;
     }
-    return 0;
+    return false;
 }

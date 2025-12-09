@@ -3,21 +3,40 @@
 #include <string>
 #include "Config.h"
 
+enum class Direction
+{
+    Idle,
+    Forward, // South-West (Down)
+    Back,    // North-East (Up)
+    Left,    // North-West
+    Right    // South-East
+};
+
 // Generic character animator shared by player and follower
 class CharacterAnimator
 {
 protected:
-    sf::Texture m_texture;
     sf::Sprite &m_sprite;
+
+    // Store textures for each direction
+    sf::Texture m_texForward;
+    sf::Texture m_texBack;
+    sf::Texture m_texLeft;
+    sf::Texture m_texRight;
 
     float m_animTimer;
     int m_currentFrame;
-    int m_currentRow;
-    bool m_facingLeft;
 
-    virtual std::string texturePath() const = 0;
-    virtual int idleFrames() const { return 4; }
-    virtual int runFrames() const { return 6; }
+    Direction m_currentDir;
+
+    // Configuration
+    const int FRAMES_PER_SHEET = 8; // Based on your image (I counted 8 sprites)
+    const float FRAME_TIME = 0.1f;  // Speed of animation
+
+    virtual std::string down_texturePath() const = 0;
+    virtual std::string up_texturePath() const = 0;
+    virtual std::string left_texturePath() const = 0;
+    virtual std::string right_texturePath() const = 0;
 
 public:
     explicit CharacterAnimator(sf::Sprite &spriteRef);

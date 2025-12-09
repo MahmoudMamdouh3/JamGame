@@ -75,18 +75,17 @@ void Game::run()
                 else if (choice == 1)
                 {
                     m_map.buildLevel();
-                    // Add character reset or other logic as needed
                     m_gameState = GameState::Playing;
                 }
                 else if (choice == 2)
                 {
-                    // Options handled internally in PauseMenu, no action needed here
+                    // Options handled internally
                 }
                 else if (choice == 3)
                 {
                     m_gameState = GameState::Menu;
                     m_menu.resetSelection();
-                    // Clear any pending events to prevent input bleed
+                    // Clear pending events
                     while (m_window.pollEvent())
                     {
                     }
@@ -94,9 +93,8 @@ void Game::run()
                 m_pauseMenu.resetSelection();
             }
 
-            // Render the game one more time to show as paused background
+            // Render game behind pause menu
             render();
-
             m_pauseMenu.render();
             m_window.display();
         }
@@ -117,10 +115,12 @@ void Game::processEvents()
                 m_gameState = GameState::Paused;
                 m_pauseMenu.resetSelection();
             }
-            else if (key->code == sf::Keyboard::Key::Space)
+            // --- NEW: Toggle Grid with 'T' ---
+            else if (key->code == sf::Keyboard::Key::T)
             {
-                m_player.jump(m_map, m_audio);
+                m_renderer.toggleGrid();
             }
+            // ---------------------------------
             else if (key->code == sf::Keyboard::Key::R)
             {
                 m_map.buildLevel();
@@ -133,6 +133,7 @@ void Game::update(float dt)
 {
     m_audio.update();
     m_player.handleInput(dt, m_map);
+
     if (m_gameState == GameState::Playing)
     {
         sf::Vector2i currentTile(static_cast<int>(m_player.getPosition().x), static_cast<int>(m_player.getPosition().y));
@@ -151,6 +152,7 @@ void Game::update(float dt)
         // std::cout << "Player Tile: (" << (int)playerPos.x << ", " << (int)playerPos.y << ")" << std::endl;
     }
 }
+
 void Game::render()
 {
     if (m_gameState == GameState::Menu)

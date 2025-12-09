@@ -12,7 +12,7 @@ include(FetchContent)
 # SFML
 FetchContent_Declare(
     SFML
-    GIT_REPOSITORY https://github.com/SFML/SFML.git
+    GIT_REPOSITORY https://github.com/SFML/SFML.git 
     GIT_TAG 3.0.2
     GIT_SHALLOW ON
     EXCLUDE_FROM_ALL
@@ -72,6 +72,7 @@ target_include_directories(JamGame PRIVATE
     "${CMAKE_SOURCE_DIR}/src/Graphics"
     "${CMAKE_SOURCE_DIR}/src/Audio"
     "${CMAKE_SOURCE_DIR}/src/UI"
+    "${CMAKE_SOURCE_DIR}/src/Props"
 )
 
 # 6. Asset Management
