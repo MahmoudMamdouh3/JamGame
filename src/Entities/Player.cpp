@@ -73,9 +73,9 @@ void Player::handleInput(float dt, const Map& map)
 
 bool Player::isValidPosition(float x, float y, const Map& map)
 {
-    // COLLISION TWEAK: Smaller margin allows getting closer to walls without snagging
     float margin = 0.2f;
 
+    // 1. Check Map Bounds & Heights (Existing Logic)
     float corners[4][2] = {
         {x - margin, y - margin},
         {x + margin, y - margin},
@@ -90,11 +90,17 @@ bool Player::isValidPosition(float x, float y, const Map& map)
         float myFloor = map.getHeight((int)m_position.x, (int)m_position.y) * BLOCK_HEIGHT;
         float targetFloor = map.getHeight(gx, gy) * BLOCK_HEIGHT;
 
-        // Can't step up huge walls
         if (targetFloor > myFloor + 10.0f) {
             return false;
         }
     }
+
+    // 2. NEW: Check Prop Collision
+    // If the center of the player hits a prop, stop.
+    if (map.checkPropCollision(x, y)) {
+        return false;
+    }
+
     return true;
 }
 

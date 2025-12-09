@@ -38,9 +38,11 @@ void Renderer::update(float dt, sf::Vector2f playerGridPos)
 
 void Renderer::render(const Map& map, const Player& player)
 {
-    // 1. BACKGROUND COLOR (Unsaturated / Paper White)
-    // RGB(245, 245, 245) is a very light, desaturated grey.
+    // Background Color
     m_window.clear(sf::Color(245, 245, 245));
+
+    // Get all props once
+    const auto& props = map.getProps();
 
     for (int sum = 0; sum < MAP_SIZE * 2; sum++)
     {
@@ -49,8 +51,34 @@ void Renderer::render(const Map& map, const Player& player)
             int y = sum - x;
             if (y < 0 || y >= MAP_SIZE) continue;
 
+            // 1. Render Ground Tile
             renderTile(map, x, y);
 
+            // 2. Render Props on this Tile
+            // Loop through all props to find which ones belong to this specific (x, y) tile
+            for (const auto& propPtr : props) { // propPtr is a std::unique_ptr<Prop>
+
+                // FIX: Use '->' because it is a pointer
+                int propX = (int)std::round(propPtr->getPosition().x);
+                int propY = (int)std::round(propPtr->getPosition().y);
+
+                if (propX == x && propY == y) {
+
+                    // Manual Render Logic
+                    sf::Vector2f screenPos = IsometricUtils::gridToScreen(propPtr->getPosition().x, propPtr->getPosition().y);
+                    screenPos += m_cameraOffset;
+
+                    // FIX: Use '->' to get the sprite
+                    sf::Sprite s = propPtr->getSprite();
+
+                    // FIX: Round position to avoid visual glitches
+                    s.setPosition(sf::Vector2f(std::round(screenPos.x), std::round(screenPos.y)));
+
+                    m_window.draw(s);
+                }
+            }
+
+            // 3. Render Player
             int pX = (int)std::round(player.getPosition().x);
             int pY = (int)std::round(player.getPosition().y);
 
@@ -79,13 +107,10 @@ void Renderer::renderTile(const Map& map, int x, int y)
         tile.setPosition(isoPos);
 
         // 2. TILE FILL COLOR
-        // Transparent so we see the background. 
-        // If you want a slight floor color, change this to sf::Color(255, 255, 255, 100)
-        tile.setFillColor(sf::Color::Cyan);
+        // Change this if you want transparent or colored tiles
+        tile.setFillColor(sf::Color::Transparent);
 
         // 3. GRID LINE COLOR
-        // RGB(160, 160, 160) is a medium-light grey. 
-        // 100 is the Alpha (transparency) so it isn't too harsh.
         tile.setOutlineColor(sf::Color(160, 160, 160, 150));
         tile.setOutlineThickness(1.0f);
 
