@@ -7,22 +7,6 @@
 
 class Player
 {
-private:
-    sf::Vector2f m_position; // Grid coordinates (x, y)
-    float m_z;               // Vertical position (height)
-    float m_velocityZ;
-
-    // --- FIX START ---
-    // sf::Sprite in SFML 3 requires a texture at construction.
-    // We add this dummy texture to satisfy the initialization list in the constructor.
-    sf::Texture m_dummyTexture;
-    // --- FIX END ---
-
-    // Visuals
-    sf::Sprite m_sprite;
-    sf::CircleShape m_shadow;
-    PlayerAnimator m_animator; // Handles the sprite animation
-
 public:
     Player();
 
@@ -43,7 +27,7 @@ private:
     // Graphics
     sf::Texture m_dummyTexture;
     sf::Sprite m_sprite;
-    AnimationComponent m_animator;
+    PlayerAnimator m_animator;
     sf::CircleShape m_shadow;
 
     // State

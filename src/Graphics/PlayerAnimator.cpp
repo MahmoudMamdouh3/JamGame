@@ -7,5 +7,5 @@ PlayerAnimator::PlayerAnimator(sf::Sprite &spriteRef)
 
 std::string PlayerAnimator::texturePath() const
 {
-    return "assets/adventurer_sheet.png";
+    return "assets/SpriteSheet02.png";
 }

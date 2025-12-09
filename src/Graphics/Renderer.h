@@ -11,7 +11,7 @@ public:
     Renderer(sf::RenderWindow &window);
 
     void update(float dt, sf::Vector2f playerGridPos);
-    void render(const Map &map, const Player &player);
+    void render(const Map &map, const Player &player, const Follower &follower);
 
     // New function to toggle grid lines
     void toggleGrid();

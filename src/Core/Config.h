@@ -17,12 +17,11 @@ inline float AUDIO_VOLUME = 50.0f;
 
 // --- UI & SYSTEM CONSTANTS (Missing lines restored here!) ---
 const std::string GAME_TITLE = "Isometric Puzzle Game";
-const std::string FONT_PATH = "assets/fonts/arial.ttf";
+const std::string FONT_PATH = "assets/fonts/static/Cairo-Regular.ttf";
 
 // These are used for calculating relative positions in the menu
 const int BASE_WINDOW_WIDTH = 1920;
 const int BASE_WINDOW_HEIGHT = 1080;
-const std::string FONT_PATH = "assets/fonts/static/Cairo-Regular.ttf";
 
 // --- ISOMETRIC TILE SETTINGS ---
 const float TILE_WIDTH = 128.f;

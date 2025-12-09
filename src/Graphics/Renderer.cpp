@@ -146,21 +146,3 @@ void Renderer::renderFollower(const Follower &follower, const Map &map, int x, i
 
     m_window.draw(drawSprite);
 }
-
-void Renderer::renderFollower(const Follower &follower, const Map &map, int x, int y)
-{
-    sf::Vector2f pScreen = IsometricUtils::gridToScreen(follower.getPosition().x, follower.getPosition().y);
-    pScreen += m_cameraOffset;
-    float currentFloorY = map.getHeight(x, y) * BLOCK_HEIGHT;
-
-    sf::CircleShape shadow = follower.getShadow();
-    shadow.setPosition(sf::Vector2f(pScreen.x, pScreen.y - currentFloorY));
-    m_window.draw(shadow);
-
-    const sf::Sprite &sprite = follower.getSprite();
-    sf::Vector2f spritePos = pScreen;
-    spritePos.y -= (follower.getZ() + currentFloorY);
-    sf::Sprite drawSprite = sprite;
-    drawSprite.setPosition(spritePos);
-    m_window.draw(drawSprite);
-}
