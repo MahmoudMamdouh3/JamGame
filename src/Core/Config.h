@@ -21,7 +21,7 @@ inline float AUDIO_VOLUME = 50.0f;
 const std::string GAME_TITLE = "Isometric Adventure";
 const int BASE_WINDOW_WIDTH = 1920;
 const int BASE_WINDOW_HEIGHT = 1080;
-const std::string FONT_PATH = "assets/fonts/arial.ttf";
+const std::string FONT_PATH = "assets/fonts/static/Cairo-Regular.ttf";
 
 const float TILE_WIDTH = 128.f;
 const float TILE_HEIGHT = 128.f;

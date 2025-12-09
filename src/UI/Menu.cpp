@@ -1,140 +1,51 @@
 #include "Menu.h"
-#include "../Core/Config.h"
-#include "OptionsMenu.h"
+#include <algorithm>
 #include <iostream>
-#include <sstream>
+#include "OptionsMenu.h"
 #include "../Audio/AudioManager.h"
 
 Menu::Menu(sf::RenderWindow &window)
     : m_window(window), m_currentState(MenuState::Main), m_selectedOption(0), m_selectionMade(false), m_optionsMenu(std::make_unique<OptionsMenu>(window))
 {
-    setupButtons();
-    setupText();
-    setupTitleBox();
+    setupAssets();
     updateLayout();
 }
 
-void Menu::setupButtons()
+void Menu::setupAssets()
 {
-    // Button dimensions
-    float buttonWidth = 300.f;
-    float buttonHeight = 80.f;
-    float leftMargin = 100.f;
-    float startY = static_cast<float>(m_window.getSize().y) / 2.f - 150.f;
-    float spacing = 120.f;
-
-    // Start Button
-    m_startButton.setSize({buttonWidth, buttonHeight});
-    m_startButton.setPosition({leftMargin, startY});
-    m_startButton.setFillColor(m_selectedColor);
-
-    // Options Button
-    m_optionsButton.setSize({buttonWidth, buttonHeight});
-    m_optionsButton.setPosition({leftMargin, startY + spacing});
-    m_optionsButton.setFillColor(m_buttonColor);
-
-    // Exit Button
-    m_exitButton.setSize({buttonWidth, buttonHeight});
-    m_exitButton.setPosition({leftMargin, startY + spacing * 2});
-    m_exitButton.setFillColor(m_buttonColor);
-}
-
-void Menu::setupText()
-{
-    // Load font - using a system font path
-    if (!m_font.openFromFile(FONT_PATH))
+    auto loadTexture = [](sf::Texture &texture, const std::string &path)
     {
-        if (!m_font.openFromFile("C:\\Windows\\Fonts\\arial.ttf"))
-            std::cerr << "Failed to load font" << std::endl;
-    }
-
-    // Start Text
-    m_startText = std::make_unique<sf::Text>(m_font, "START", 40);
-    m_startText->setFillColor(m_textColor);
-
-    // Options Text
-    m_optionsText = std::make_unique<sf::Text>(m_font, "OPTIONS", 40);
-    m_optionsText->setFillColor(m_textColor);
-
-    // Exit Text
-    m_exitText = std::make_unique<sf::Text>(m_font, "EXIT", 40);
-    m_exitText->setFillColor(m_textColor);
-
-    updateTextPositions();
-}
-
-void Menu::setupTitleBox()
-{
-    // Create title box on the right side
-    float boxWidth = 400.f;
-    float boxHeight = 300.f;
-    float boxX = static_cast<float>(m_window.getSize().x) - boxWidth - 50.f; // 50 pixels from right edge
-    float boxY = static_cast<float>(m_window.getSize().y) / 2.f - boxHeight / 2;
-
-    m_titleBox.setSize({boxWidth, boxHeight});
-    m_titleBox.setPosition({boxX, boxY});
-    m_titleBox.setFillColor(sf::Color::Transparent);
-    m_titleBox.setOutlineColor(sf::Color::White);
-    m_titleBox.setOutlineThickness(2.f);
-
-    // Wrap text inside the box
-    wrapTextInBox(GAME_TITLE, boxWidth - 20.f, 50);
-}
-
-void Menu::wrapTextInBox(const std::string &text, float boxWidth, float charSize)
-{
-    m_titleLines.clear();
-
-    std::string currentLine;
-    std::istringstream stream(text);
-    std::string word;
-
-    while (stream >> word)
-    {
-        std::string testLine = currentLine.empty() ? word : currentLine + " " + word;
-        sf::Text testText(m_font, testLine, static_cast<unsigned int>(charSize));
-
-        if (testText.getGlobalBounds().size.x > boxWidth && !currentLine.empty())
-        {
-            // Current line is full, start a new one
-            auto lineText = std::make_unique<sf::Text>(m_font, currentLine, static_cast<unsigned int>(charSize));
-            lineText->setFillColor(sf::Color::White);
-            m_titleLines.push_back(std::move(lineText));
-            currentLine = word;
-        }
+        if (!texture.loadFromFile(path))
+            std::cerr << "Failed to load texture: " << path << std::endl;
         else
-        {
-            currentLine = testLine;
-        }
-    }
+            texture.setSmooth(true);
+    };
 
-    // Add the last line
-    if (!currentLine.empty())
+    loadTexture(m_backgroundTexture, "assets/UI/UI Background.png");
+    if (m_backgroundTexture.getSize().x > 0 && m_backgroundTexture.getSize().y > 0)
+        m_backgroundSprite.emplace(m_backgroundTexture);
+
+    const auto makeButton = [&](sf::Texture &texture, const std::string &path) -> std::optional<sf::Sprite>
     {
-        auto lineText = std::make_unique<sf::Text>(m_font, currentLine, static_cast<unsigned int>(charSize));
-        lineText->setFillColor(sf::Color::White);
-        m_titleLines.push_back(std::move(lineText));
-    }
+        loadTexture(texture, path);
+        const sf::Vector2u texSize = texture.getSize();
+        if (texSize.x == 0 || texSize.y == 0)
+            return std::nullopt;
 
-    // Position each line inside the box
-    float lineY = m_titleBox.getPosition().y + 15.f;
-    float lineSpacing = charSize + 10.f;
+        sf::Sprite sprite(texture);
+        sprite.setColor(m_buttonColor);
 
-    for (auto &line : m_titleLines)
-    {
-        line->setPosition({m_titleBox.getPosition().x + 10.f, lineY});
-        lineY += lineSpacing;
-    }
-}
+        const float desiredWidth = 300.f;
+        const float desiredHeight = 80.f;
+        const float scale = std::min(desiredWidth / static_cast<float>(texSize.x),
+                                     desiredHeight / static_cast<float>(texSize.y));
+        sprite.setScale(sf::Vector2f{scale, scale});
+        return sprite;
+    };
 
-void Menu::updateTextPositions()
-{
-    if (m_startText)
-        m_startText->setPosition(m_startButton.getPosition() + sf::Vector2f{60.f, 15.f});
-    if (m_optionsText)
-        m_optionsText->setPosition(m_optionsButton.getPosition() + sf::Vector2f{35.f, 15.f});
-    if (m_exitText)
-        m_exitText->setPosition(m_exitButton.getPosition() + sf::Vector2f{80.f, 15.f});
+    m_startSprite = makeButton(m_startTexture, "assets/UI/Start Button.png");
+    m_optionsSprite = makeButton(m_optionsTexture, "assets/UI/Options Button.png");
+    m_exitSprite = makeButton(m_exitTexture, "assets/UI/Exit Button.png");
 }
 
 void Menu::updateLayout()
@@ -145,32 +56,23 @@ void Menu::updateLayout()
 
     m_lastWindowSize = currentSize;
 
-    float buttonWidth = 300.f;
-    float buttonHeight = 80.f;
     float leftMargin = 100.f;
     float startY = static_cast<float>(currentSize.y) / 2.f - 150.f;
     float spacing = 120.f;
 
-    m_startButton.setSize({buttonWidth, buttonHeight});
-    m_startButton.setPosition({leftMargin, startY});
+    if (m_backgroundSprite && m_backgroundTexture.getSize().x > 0 && m_backgroundTexture.getSize().y > 0)
+    {
+        m_backgroundSprite->setScale(sf::Vector2f{
+            static_cast<float>(currentSize.x) / m_backgroundTexture.getSize().x,
+            static_cast<float>(currentSize.y) / m_backgroundTexture.getSize().y});
+    }
 
-    m_optionsButton.setSize({buttonWidth, buttonHeight});
-    m_optionsButton.setPosition({leftMargin, startY + spacing});
-
-    m_exitButton.setSize({buttonWidth, buttonHeight});
-    m_exitButton.setPosition({leftMargin, startY + spacing * 2});
-
-    updateTextPositions();
-
-    float boxWidth = 400.f;
-    float boxHeight = 300.f;
-    float boxX = static_cast<float>(currentSize.x) - boxWidth - 50.f;
-    float boxY = static_cast<float>(currentSize.y) / 2.f - boxHeight / 2.f;
-
-    m_titleBox.setSize({boxWidth, boxHeight});
-    m_titleBox.setPosition({boxX, boxY});
-
-    wrapTextInBox(GAME_TITLE, boxWidth - 20.f, 50);
+    if (m_startSprite)
+        m_startSprite->setPosition({leftMargin, startY});
+    if (m_optionsSprite)
+        m_optionsSprite->setPosition({leftMargin, startY + spacing});
+    if (m_exitSprite)
+        m_exitSprite->setPosition({leftMargin, startY + spacing * 2});
 }
 
 void Menu::handleInput(AudioManager &audio)
@@ -236,17 +138,17 @@ void Menu::handleInput(AudioManager &audio)
             {
                 const sf::Vector2f mousePos = m_window.mapPixelToCoords(sf::Vector2i(mouseMoved->position.x, mouseMoved->position.y));
 
-                if (isMouseOverButton(m_startButton, mousePos))
+                if (isMouseOverButton(m_startSprite, mousePos))
                 {
                     m_selectedOption = 0;
                     audio.playSound("menu_move");
                 }
-                else if (isMouseOverButton(m_optionsButton, mousePos))
+                else if (isMouseOverButton(m_optionsSprite, mousePos))
                 {
                     m_selectedOption = 1;
                     audio.playSound("menu_move");
                 }
-                else if (isMouseOverButton(m_exitButton, mousePos))
+                else if (isMouseOverButton(m_exitSprite, mousePos))
                 {
                     m_selectedOption = 2;
                     audio.playSound("menu_move");
@@ -269,17 +171,20 @@ void Menu::handleInput(AudioManager &audio)
 void Menu::updateButtonSelection()
 {
     // Reset all buttons to normal color
-    m_startButton.setFillColor(m_buttonColor);
-    m_optionsButton.setFillColor(m_buttonColor);
-    m_exitButton.setFillColor(m_buttonColor);
+    if (m_startSprite)
+        m_startSprite->setColor(m_buttonColor);
+    if (m_optionsSprite)
+        m_optionsSprite->setColor(m_buttonColor);
+    if (m_exitSprite)
+        m_exitSprite->setColor(m_buttonColor);
 
     // Highlight selected button
-    if (m_selectedOption == 0)
-        m_startButton.setFillColor(m_selectedColor);
-    else if (m_selectedOption == 1)
-        m_optionsButton.setFillColor(m_selectedColor);
-    else if (m_selectedOption == 2)
-        m_exitButton.setFillColor(m_selectedColor);
+    if (m_selectedOption == 0 && m_startSprite)
+        m_startSprite->setColor(m_selectedColor);
+    else if (m_selectedOption == 1 && m_optionsSprite)
+        m_optionsSprite->setColor(m_selectedColor);
+    else if (m_selectedOption == 2 && m_exitSprite)
+        m_exitSprite->setColor(m_selectedColor);
 }
 
 void Menu::render()
@@ -296,55 +201,40 @@ void Menu::render()
 
         m_window.clear(sf::Color::Black);
 
+        // Background
+        if (m_backgroundSprite)
+            m_window.draw(*m_backgroundSprite);
+
         // Render buttons
-        m_window.draw(m_startButton);
-        m_window.draw(m_optionsButton);
-        m_window.draw(m_exitButton);
-
-        // Render text
-        if (m_startText)
-            m_window.draw(*m_startText);
-        if (m_optionsText)
-            m_window.draw(*m_optionsText);
-        if (m_exitText)
-            m_window.draw(*m_exitText);
-
-        // Render title box
-        m_window.draw(m_titleBox);
-
-        // Render wrapped title text
-        for (auto &line : m_titleLines)
-        {
-            if (line)
-                m_window.draw(*line);
-        }
+        if (m_startSprite)
+            m_window.draw(*m_startSprite);
+        if (m_optionsSprite)
+            m_window.draw(*m_optionsSprite);
+        if (m_exitSprite)
+            m_window.draw(*m_exitSprite);
     }
     m_window.display();
 }
 
-bool Menu::isMouseOverButton(const sf::RectangleShape &button, const sf::Vector2f &mousePos) const
+bool Menu::isMouseOverButton(const std::optional<sf::Sprite> &button, const sf::Vector2f &mousePos) const
 {
-    const sf::Vector2f buttonPos = button.getPosition();
-    const sf::Vector2f buttonSize = button.getSize();
-
-    return mousePos.x >= buttonPos.x && mousePos.x <= buttonPos.x + buttonSize.x &&
-           mousePos.y >= buttonPos.y && mousePos.y <= buttonPos.y + buttonSize.y;
+    return button && button->getGlobalBounds().contains(mousePos);
 }
 
 void Menu::checkMouseClick(const sf::Vector2f &mousePos)
 {
-    if (m_startButton.getGlobalBounds().contains(mousePos))
+    if (m_startSprite && m_startSprite->getGlobalBounds().contains(mousePos))
     {
         m_selectedOption = 0;
         m_selectionMade = true;
         m_currentState = MenuState::Main;
     }
-    else if (m_optionsButton.getGlobalBounds().contains(mousePos))
+    else if (m_optionsSprite && m_optionsSprite->getGlobalBounds().contains(mousePos))
     {
         m_selectedOption = 1;
         m_currentState = MenuState::Options;
     }
-    else if (m_exitButton.getGlobalBounds().contains(mousePos))
+    else if (m_exitSprite && m_exitSprite->getGlobalBounds().contains(mousePos))
     {
         m_selectedOption = 2;
         m_selectionMade = true;
