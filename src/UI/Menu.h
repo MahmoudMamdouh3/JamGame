@@ -31,6 +31,9 @@ private:
     std::optional<sf::Sprite> m_startSprite;
     std::optional<sf::Sprite> m_optionsSprite;
     std::optional<sf::Sprite> m_exitSprite;
+    std::optional<sf::Vector2f> m_startBaseScale;
+    std::optional<sf::Vector2f> m_optionsBaseScale;
+    std::optional<sf::Vector2f> m_exitBaseScale;
 
     sf::Vector2u m_lastWindowSize{};
 
@@ -40,6 +43,7 @@ private:
     // Colors
     const sf::Color m_buttonColor = sf::Color(220, 220, 220);
     const sf::Color m_selectedColor = sf::Color::White;
+    const float m_highlightScale = 1.12f;
 
 public:
     Menu(sf::RenderWindow &window);

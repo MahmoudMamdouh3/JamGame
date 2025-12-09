@@ -23,19 +23,26 @@ OptionsMenu::OptionsMenu(sf::RenderWindow &window)
         {1920, 1080},
         {2560, 1440}};
 
+    // Background
+    if (m_backgroundTexture.loadFromFile("assets/UI/UI Background.png"))
+    {
+        m_backgroundTexture.setSmooth(true);
+        m_backgroundSprite.emplace(m_backgroundTexture);
+    }
+
     setupUI();
 }
 
 void OptionsMenu::setupUI()
 {
     float startX = 200.f;
-    float startY = 150.f;
+    float startY = 460.f; // move content further down
     float lineHeight = 80.f;
 
     // Title
     m_titleText = std::make_unique<sf::Text>(m_font, "OPTIONS", 60);
     m_titleText->setFillColor(sf::Color::White);
-    m_titleText->setPosition({startX, 50.f});
+    m_titleText->setPosition({startX, 340.f});
 
     // Volume Label
     m_volumeLabel = std::make_unique<sf::Text>(m_font, "Volume:", 40);
@@ -390,6 +397,25 @@ void OptionsMenu::render()
     updateSelection();
 
     m_window.clear(sf::Color::Black);
+
+    if (m_backgroundSprite)
+    {
+        const sf::Vector2u texSize = m_backgroundTexture.getSize();
+        const sf::Vector2u winSize = m_window.getSize();
+        if (texSize.x > 0 && texSize.y > 0)
+        {
+            m_backgroundSprite->setScale(sf::Vector2f{
+                static_cast<float>(winSize.x) / texSize.x,
+                static_cast<float>(winSize.y) / texSize.y});
+        }
+        m_window.draw(*m_backgroundSprite);
+    }
+
+    // Dim overlay similar to pause menu
+    const sf::Vector2u winSize = m_window.getSize();
+    sf::RectangleShape overlay({static_cast<float>(winSize.x), static_cast<float>(winSize.y)});
+    overlay.setFillColor(sf::Color(0, 0, 0, 150));
+    m_window.draw(overlay);
 
     if (m_titleText)
         m_window.draw(*m_titleText);

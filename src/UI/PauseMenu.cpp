@@ -13,6 +13,12 @@ PauseMenu::PauseMenu(sf::RenderWindow &window)
         }
     }
 
+    if (m_backgroundTexture.loadFromFile("assets/UI/UI Background.png"))
+    {
+        m_backgroundTexture.setSmooth(true);
+        m_backgroundSprite.emplace(m_backgroundTexture);
+    }
+
     // Initialize Title Text using unique_ptr
     m_titleText = std::make_unique<sf::Text>(m_font, "PAUSED", 60);
     // SFML 3 Fix: setPosition requires Vector2f
@@ -92,8 +98,22 @@ void PauseMenu::handleInput(AudioManager &audio)
         {
             if (!enterPressed)
             {
-                m_selectionMade = true;
                 audio.playSound("menu_select");
+
+                // Apply selection for keyboard the same way as mouse clicks
+                if (m_selectedOption == 2)
+                {
+                    // Open options submenu
+                    m_currentState = PauseMenuState::Options;
+                    m_optionsMenu->resetSelection();
+                    m_selectionMade = false;
+                }
+                else
+                {
+                    // Resume / Restart / Menu
+                    m_selectionMade = true;
+                }
+
                 enterPressed = true;
             }
         }
@@ -147,6 +167,19 @@ void PauseMenu::render()
     }
     else
     {
+        if (m_backgroundSprite)
+        {
+            const sf::Vector2u texSize = m_backgroundTexture.getSize();
+            const sf::Vector2u winSize = m_window.getSize();
+            if (texSize.x > 0 && texSize.y > 0)
+            {
+                m_backgroundSprite->setScale(sf::Vector2f{
+                    static_cast<float>(winSize.x) / texSize.x,
+                    static_cast<float>(winSize.y) / texSize.y});
+            }
+            m_window.draw(*m_backgroundSprite);
+        }
+
         // Draw dark semi-transparent overlay
         sf::RectangleShape overlay({(float)WINDOW_WIDTH, (float)WINDOW_HEIGHT});
         overlay.setFillColor(sf::Color(0, 0, 0, 150));

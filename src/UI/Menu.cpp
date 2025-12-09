@@ -35,8 +35,8 @@ void Menu::setupAssets()
         sf::Sprite sprite(texture);
         sprite.setColor(m_buttonColor);
 
-        const float desiredWidth = 300.f;
-        const float desiredHeight = 80.f;
+        const float desiredWidth = 620.f; // upscale texture target size
+        const float desiredHeight = 180.f;
         const float scale = std::min(desiredWidth / static_cast<float>(texSize.x),
                                      desiredHeight / static_cast<float>(texSize.y));
         sprite.setScale(sf::Vector2f{scale, scale});
@@ -44,8 +44,16 @@ void Menu::setupAssets()
     };
 
     m_startSprite = makeButton(m_startTexture, "assets/UI/Start Button.png");
+    if (m_startSprite)
+        m_startBaseScale = m_startSprite->getScale();
+
     m_optionsSprite = makeButton(m_optionsTexture, "assets/UI/Options Button.png");
+    if (m_optionsSprite)
+        m_optionsBaseScale = m_optionsSprite->getScale();
+
     m_exitSprite = makeButton(m_exitTexture, "assets/UI/Exit Button.png");
+    if (m_exitSprite)
+        m_exitBaseScale = m_exitSprite->getScale();
 }
 
 void Menu::updateLayout()
@@ -56,9 +64,9 @@ void Menu::updateLayout()
 
     m_lastWindowSize = currentSize;
 
-    float leftMargin = 100.f;
-    float startY = static_cast<float>(currentSize.y) / 2.f - 150.f;
-    float spacing = 120.f;
+    float leftMargin = 240.f; // shift buttons further right
+    float startY = static_cast<float>(currentSize.y) / 2.f - 230.f;
+    float spacing = 210.f;
 
     if (m_backgroundSprite && m_backgroundTexture.getSize().x > 0 && m_backgroundTexture.getSize().y > 0)
     {
@@ -171,20 +179,20 @@ void Menu::handleInput(AudioManager &audio)
 void Menu::updateButtonSelection()
 {
     // Reset all buttons to normal color
-    if (m_startSprite)
-        m_startSprite->setColor(m_buttonColor);
-    if (m_optionsSprite)
-        m_optionsSprite->setColor(m_buttonColor);
-    if (m_exitSprite)
-        m_exitSprite->setColor(m_buttonColor);
+    const auto applyState = [&](std::optional<sf::Sprite> &sprite, const std::optional<sf::Vector2f> &baseScale, bool selected)
+    {
+        if (!sprite || !baseScale)
+            return;
 
-    // Highlight selected button
-    if (m_selectedOption == 0 && m_startSprite)
-        m_startSprite->setColor(m_selectedColor);
-    else if (m_selectedOption == 1 && m_optionsSprite)
-        m_optionsSprite->setColor(m_selectedColor);
-    else if (m_selectedOption == 2 && m_exitSprite)
-        m_exitSprite->setColor(m_selectedColor);
+        const sf::Vector2f targetScale = selected ? sf::Vector2f{baseScale->x * m_highlightScale, baseScale->y * m_highlightScale}
+                                                  : *baseScale;
+        sprite->setScale(targetScale);
+        sprite->setColor(selected ? sf::Color(255, 255, 255, 255) : m_buttonColor);
+    };
+
+    applyState(m_startSprite, m_startBaseScale, m_selectedOption == 0);
+    applyState(m_optionsSprite, m_optionsBaseScale, m_selectedOption == 1);
+    applyState(m_exitSprite, m_exitBaseScale, m_selectedOption == 2);
 }
 
 void Menu::render()
