@@ -72,6 +72,7 @@ target_include_directories(JamGame PRIVATE
     "${CMAKE_SOURCE_DIR}/src/Graphics"
     "${CMAKE_SOURCE_DIR}/src/Audio"
     "${CMAKE_SOURCE_DIR}/src/UI"
+    "${CMAKE_SOURCE_DIR}/src/Props"
 )
 
 # 6. Asset Management

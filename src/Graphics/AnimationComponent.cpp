@@ -1,20 +1,18 @@
 // #include "AnimationComponent.h"
 // #include <iostream>
 
-// AnimationComponent::AnimationComponent(sf::Sprite &spriteRef)
+// AnimationComponent::AnimationComponent(sf::Sprite& spriteRef)
 //     : m_sprite(spriteRef),
-//       m_animTimer(0.0f),
-//       m_currentFrame(0),
-//       m_currentRow(0),
-//       m_facingLeft(false)
+//     m_animTimer(0.0f),
+//     m_currentFrame(0),
+//     m_currentRow(0),
+//     m_facingLeft(false)
 // {
 // }
 
-// void AnimationComponent::loadAssets()
-// {
+// void AnimationComponent::loadAssets() {
 //     // IMPORTANT: Make sure this file is a PNG with transparency!
-//     if (!m_texture.loadFromFile("assets/SpriteSheet02.png"))
-//     {
+//     if (!m_texture.loadFromFile("assets/SpriteSheet02.png")) {
 //         std::cerr << "Error loading player texture!" << std::endl;
 //     }
 
@@ -28,36 +26,28 @@
 //     m_sprite.setTextureRect(sf::IntRect(sf::Vector2i(0, 0), sf::Vector2i(FRAME_WIDTH, FRAME_HEIGHT)));
 // }
 
-// void AnimationComponent::update(float dt, sf::Vector2f inputDir)
-// {
+// void AnimationComponent::update(float dt, sf::Vector2f inputDir) {
 //     bool moving = (inputDir.x != 0 || inputDir.y != 0);
 
-//     if (moving)
-//     {
+//     if (moving) {
 //         // --- 1. DETERMINE ROW BASED ON GRID INPUT ---
 
 //         // Priority: Check X movement first, then Y.
 //         // If moving diagonally (W+D), this logic prioritizes X-axis facing.
 
-//         if (inputDir.x > 0.1f)
-//             m_currentRow = 0; // D -> Grid X+ -> Bottom Right
-//         else if (inputDir.x < -0.1f)
-//             m_currentRow = 3; // A -> Grid X- -> Top Left
-//         else if (inputDir.y > 0.1f)
-//             m_currentRow = 2; // S -> Grid Y+ -> Bottom Left
-//         else if (inputDir.y < -0.1f)
-//             m_currentRow = 1; // W -> Grid Y- -> Top Right
+//         if (inputDir.x > 0.1f)      m_currentRow = 0; // D -> Grid X+ -> Bottom Right
+//         else if (inputDir.x < -0.1f) m_currentRow = 3; // A -> Grid X- -> Top Left
+//         else if (inputDir.y > 0.1f)  m_currentRow = 2; // S -> Grid Y+ -> Bottom Left
+//         else if (inputDir.y < -0.1f) m_currentRow = 1; // W -> Grid Y- -> Top Right
 
 //         // --- 2. ANIMATE ---
 //         m_animTimer += dt;
-//         if (m_animTimer >= ANIM_FRAME_TIME)
-//         {
+//         if (m_animTimer >= ANIM_FRAME_TIME) {
 //             m_animTimer = 0.0f;
 //             m_currentFrame = (m_currentFrame + 1) % FRAMES_PER_ROW;
 //         }
 //     }
-//     else
-//     {
+//     else {
 //         // --- 3. IDLE ---
 //         m_currentFrame = 0;
 //         m_animTimer = 0.0f;
