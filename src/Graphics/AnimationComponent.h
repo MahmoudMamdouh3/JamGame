@@ -23,5 +23,6 @@
 //     void loadAssets(const std::string &texturePath = "assets/adventurer_sheet.png");
 
 //     // Updates the animation frame based on movement direction
+// // In AnimationComponent.h
 //     void update(float dt, sf::Vector2f inputDir);
 // };

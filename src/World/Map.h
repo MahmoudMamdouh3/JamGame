@@ -1,9 +1,10 @@
 #pragma once
-#include "Config.h"
+#include "Config.h" // Ensure this contains MAP_SIZE
 
 class Map
 {
 private:
+    // This is the actual variable name
     int m_heights[MAP_SIZE][MAP_SIZE];
 
 public:
@@ -11,6 +12,5 @@ public:
 
     void buildLevel();
 
-    // Returns the height of the block at grid coordinates (x, y)
     int getHeight(int x, int y) const;
 };
