@@ -129,6 +129,10 @@ void Game::update(float dt)
     {
         m_player.update(dt, m_map);
         m_renderer.update(dt, m_player.getPosition());
+
+        // Debug: Print current tile position
+        sf::Vector2f playerPos = m_player.getPosition();
+        std::cout << "Player Tile: (" << (int)playerPos.x << ", " << (int)playerPos.y << ")" << std::endl;
     }
 }
 void Game::render()
