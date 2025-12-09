@@ -21,5 +21,6 @@ public:
     void loadAssets();
 
     // Updates the animation frame based on movement direction
+// In AnimationComponent.h
     void update(float dt, sf::Vector2f inputDir);
 };

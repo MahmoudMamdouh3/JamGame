@@ -1,5 +1,5 @@
 #include "PauseMenu.h"
-#include "Config.h"
+#include "../Core/Config.h" // <--- Correct relative path
 #include <iostream>
 
 PauseMenu::PauseMenu(sf::RenderWindow &window)
