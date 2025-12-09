@@ -1,12 +1,11 @@
 #include "OptionsMenu.h"
 #include "../Core/Config.h"
+#include <algorithm>
 #include <iostream>
 #include <sstream>
-#include <algorithm> // For std::max and std::min
 
 OptionsMenu::OptionsMenu(sf::RenderWindow &window)
-    : m_window(window), m_selectedOption(0), m_isResolutionDropdownOpen(false),
-      m_selectedResolutionIndex(2), m_isDraggingSlider(false),
+    : m_window(window), m_selectedOption(0), m_isDraggingSlider(false),
       m_volumeLevel(50.f), m_isFullscreen(false)
 {
     // Try to load font from Config path, fallback to system path
@@ -15,13 +14,6 @@ OptionsMenu::OptionsMenu(sf::RenderWindow &window)
         if (!m_font.openFromFile("C:\\Windows\\Fonts\\arial.ttf"))
             std::cerr << "Failed to load font" << std::endl;
     }
-
-    // Initialize resolutions
-    m_resolutions = {
-        {1280, 720},
-        {1600, 900},
-        {1920, 1080},
-        {2560, 1440}};
 
     // Background
     if (m_backgroundTexture.loadFromFile("assets/UI/UI Background.png"))
@@ -35,122 +27,110 @@ OptionsMenu::OptionsMenu(sf::RenderWindow &window)
 
 void OptionsMenu::setupUI()
 {
-    float startX = 200.f;
-    float startY = 460.f; // move content further down
-    float lineHeight = 80.f;
-
-    // Title
-    m_titleText = std::make_unique<sf::Text>(m_font, "OPTIONS", 60);
-    m_titleText->setFillColor(sf::Color::White);
-    m_titleText->setPosition({startX, 340.f});
-
-    // Volume Label
-    m_volumeLabel = std::make_unique<sf::Text>(m_font, "Volume:", 40);
-    m_volumeLabel->setFillColor(m_textColor);
-    m_volumeLabel->setPosition({startX, startY});
-
-    // Volume Value
-    m_volumeValue = std::make_unique<sf::Text>(m_font, "50%", 40);
-    m_volumeValue->setFillColor(m_textColor);
-    m_volumeValue->setPosition({startX + 400.f, startY});
-
-    // Volume Slider
-    m_volumeSlider.setSize({200.f, 20.f});
-    m_volumeSlider.setPosition({startX + 200.f, startY + 10.f});
-    m_volumeSlider.setFillColor(sf::Color::White);
-
-    m_volumeHandle.setSize({15.f, 40.f});
-    m_volumeHandle.setPosition({startX + 200.f + (m_volumeLevel / 100.f) * 200.f - 7.5f, startY});
-    m_volumeHandle.setFillColor(m_selectedColor);
-
-    // Fullscreen Label
-    float fullscreenY = startY + lineHeight;
-    m_fullscreenLabel = std::make_unique<sf::Text>(m_font, "Fullscreen:", 40);
-    m_fullscreenLabel->setFillColor(m_textColor);
-    m_fullscreenLabel->setPosition({startX, fullscreenY});
-
-    m_fullscreenButton.setSize({80.f, 50.f});
-    m_fullscreenButton.setPosition({startX + 400.f, fullscreenY + 5.f});
-    m_fullscreenButton.setFillColor(m_buttonColor);
-
-    m_fullscreenValue = std::make_unique<sf::Text>(m_font, "OFF", 35);
-    m_fullscreenValue->setFillColor(sf::Color::Black);
-    m_fullscreenValue->setPosition({m_fullscreenButton.getPosition() + sf::Vector2f{10.f, 5.f}});
-
-    // Resolution Label
-    float resolutionY = fullscreenY + lineHeight;
-    m_resolutionLabel = std::make_unique<sf::Text>(m_font, "Resolution:", 40);
-    m_resolutionLabel->setFillColor(m_textColor);
-    m_resolutionLabel->setPosition({startX, resolutionY});
-
-    m_resolutionButton.setSize({200.f, 50.f});
-    m_resolutionButton.setPosition({startX + 400.f, resolutionY + 5.f});
-    m_resolutionButton.setFillColor(m_buttonColor);
-
-    m_resolutionValue = std::make_unique<sf::Text>(m_font, resolutionToString(m_resolutions[m_selectedResolutionIndex]), 35);
-    m_resolutionValue->setFillColor(sf::Color::Black);
-    m_resolutionValue->setPosition({m_resolutionButton.getPosition() + sf::Vector2f{20.f, 5.f}});
-
-    // Resolution dropdown options
-    for (size_t i = 0; i < m_resolutions.size(); ++i)
+    auto loadTexture = [](sf::Texture &texture, const std::string &path)
     {
-        auto optionText = std::make_unique<sf::Text>(m_font, resolutionToString(m_resolutions[i]), 30);
-        optionText->setFillColor(sf::Color::Black);
+        if (!texture.loadFromFile(path))
+            std::cerr << "Failed to load texture: " << path << std::endl;
+        else
+            texture.setSmooth(true);
+    };
 
-        sf::RectangleShape optionButton({180.f, 40.f});
-        optionButton.setPosition({startX + 420.f, resolutionY + 70.f + static_cast<float>(i) * 50.f});
-        optionButton.setFillColor(m_buttonColor);
+    // Load all textures
+    loadTexture(m_optionsTitleTexture, "assets/UI/Options.png");
+    loadTexture(m_soundTexture, "assets/UI/Sound.png");
+    loadTexture(m_volumeSliderHandleTexture, "assets/UI/Volume Slider.png");
+    loadTexture(m_volumeSliderBackgroundTexture, "assets/UI/Button.png");
+    loadTexture(m_fullscreenButtonTexture, "assets/UI/Button.png");
+    loadTexture(m_onTexture, "assets/UI/on.png");
+    loadTexture(m_offTexture, "assets/UI/off.png");
+    loadTexture(m_backButtonTexture, "assets/UI/Exit Button.png");
 
-        optionText->setPosition({optionButton.getPosition() + sf::Vector2f{15.f, 3.f}});
-
-        m_resolutionOptions.push_back(std::move(optionText));
-        m_resolutionOptionButtons.push_back(optionButton);
+    // Create sprites
+    if (m_optionsTitleTexture.getSize().x > 0)
+        m_optionsTitleSprite.emplace(m_optionsTitleTexture);
+    if (m_soundTexture.getSize().x > 0)
+        m_soundSprite.emplace(m_soundTexture);
+    if (m_volumeSliderHandleTexture.getSize().x > 0)
+        m_volumeSliderHandleSprite.emplace(m_volumeSliderHandleTexture);
+    if (m_volumeSliderBackgroundTexture.getSize().x > 0)
+        m_volumeSliderBackgroundSprite.emplace(m_volumeSliderBackgroundTexture);
+    if (m_fullscreenButtonTexture.getSize().x > 0)
+        m_fullscreenButtonSprite.emplace(m_fullscreenButtonTexture);
+    if (m_onTexture.getSize().x > 0)
+        m_onSprite.emplace(m_onTexture);
+    if (m_offTexture.getSize().x > 0)
+        m_offSprite.emplace(m_offTexture);
+    if (m_backButtonTexture.getSize().x > 0)
+    {
+        m_backButtonSprite.emplace(m_backButtonTexture);
+        m_backButtonBaseScale = m_backButtonSprite->getScale();
     }
 
-    // Back button
-    m_backButton.setSize({200.f, 60.f});
-    m_backButton.setPosition({startX, resolutionY + lineHeight + 50.f});
-    m_backButton.setFillColor(m_buttonColor);
+    // Create volume value text
+    m_volumeValueText = std::make_unique<sf::Text>(m_font, "50", 30);
+    m_volumeValueText->setFillColor(sf::Color::White);
 
-    m_backButtonText = std::make_unique<sf::Text>(m_font, "BACK", 40);
-    m_backButtonText->setFillColor(sf::Color::Black);
-    m_backButtonText->setPosition({m_backButton.getPosition() + sf::Vector2f{30.f, 8.f}});
+    // Position sprites with increased vertical spacing and aligned x position
+    float alignedX = 200.f;
+    if (m_optionsTitleSprite)
+        m_optionsTitleSprite->setPosition({alignedX, 80.f});
+    if (m_soundSprite)
+        m_soundSprite->setPosition({alignedX, 200.f});
+    // Volume slider line
+    if (m_volumeSliderBackgroundSprite)
+        m_volumeSliderBackgroundSprite->setPosition({m_sliderTrackLeft, 280.f});
+    if (m_volumeSliderHandleSprite)
+    {
+        // Position handle based on current volume level
+        float handleX = m_sliderTrackLeft + (m_volumeLevel / 100.f) * m_sliderTrackWidth;
+        m_volumeSliderHandleSprite->setPosition({handleX, 290.f});
+    }
+    if (m_volumeValueText)
+        m_volumeValueText->setPosition({m_sliderTrackLeft + 220.f, 290.f});
+    if (m_fullscreenButtonSprite)
+        m_fullscreenButtonSprite->setPosition({alignedX, 380.f});
+    if (m_onSprite)
+        m_onSprite->setPosition({alignedX, 380.f});
+    if (m_offSprite)
+        m_offSprite->setPosition({alignedX, 380.f});
+    if (m_backButtonSprite)
+        m_backButtonSprite->setPosition({alignedX, 520.f});
 }
 
 void OptionsMenu::updateSelection()
 {
-    if (m_volumeValue)
-        m_volumeValue->setFillColor(m_textColor);
-    m_fullscreenButton.setFillColor(m_buttonColor);
-    m_resolutionButton.setFillColor(m_buttonColor);
-    m_backButton.setFillColor(m_buttonColor);
+    // Update colors for selection state
+    if (m_backButtonSprite && m_backButtonBaseScale)
+    {
+        if (m_selectedOption == 100)
+        {
+            m_backButtonSprite->setColor(sf::Color::White);
+            m_backButtonSprite->setScale(sf::Vector2f{m_backButtonBaseScale->x * 1.1f, m_backButtonBaseScale->y * 1.1f});
+        }
+        else
+        {
+            m_backButtonSprite->setColor(sf::Color(220, 220, 220));
+            m_backButtonSprite->setScale(*m_backButtonBaseScale);
+        }
+    }
 
-    for (auto &button : m_resolutionOptionButtons)
-        button.setFillColor(m_buttonColor);
+    // Handle fullscreen button highlight
+    if (m_selectedOption == 1)
+    {
+        if (m_fullscreenButtonSprite)
+            m_fullscreenButtonSprite->setColor(sf::Color::White);
+    }
+    else
+    {
+        if (m_fullscreenButtonSprite)
+            m_fullscreenButtonSprite->setColor(sf::Color(220, 220, 220));
+    }
 
-    if (m_selectedOption == 0)
-    {
-        if (m_volumeValue)
-            m_volumeValue->setFillColor(m_selectedColor);
-    }
-    else if (m_selectedOption == 1)
-    {
-        m_fullscreenButton.setFillColor(m_selectedColor);
-    }
-    else if (m_selectedOption == 2)
-    {
-        m_resolutionButton.setFillColor(m_selectedColor);
-    }
-    else if (m_isResolutionDropdownOpen && m_selectedOption >= 3 && m_selectedOption < static_cast<int>(3 + m_resolutions.size()))
-    {
-        int optionIndex = m_selectedOption - 3;
-        if (optionIndex >= 0 && optionIndex < static_cast<int>(m_resolutionOptionButtons.size()))
-            m_resolutionOptionButtons[optionIndex].setFillColor(m_selectedColor);
-    }
-    else if (m_selectedOption == 100)
-    {
-        m_backButton.setFillColor(m_selectedColor);
-    }
+    // Handle volume slider highlight
+    if (m_selectedOption == 0 && m_volumeSliderHandleSprite)
+        m_volumeSliderHandleSprite->setColor(sf::Color::White);
+    else if (m_volumeSliderHandleSprite)
+        m_volumeSliderHandleSprite->setColor(sf::Color(220, 220, 220));
 }
 
 // UPDATED: Now processes Audio
@@ -163,98 +143,59 @@ void OptionsMenu::handleInput(AudioManager &audio)
 
         if (const auto *key = event->getIf<sf::Event::KeyPressed>())
         {
-            if (m_isResolutionDropdownOpen)
+            // Main Options Navigation
+            if (key->code == sf::Keyboard::Key::Up)
             {
-                if (key->code == sf::Keyboard::Key::Up)
+                // Cycle: 0(Vol) -> 1(Full) -> 100(Back)
+                if (m_selectedOption == 0)
+                    m_selectedOption = 100;
+                else if (m_selectedOption == 100)
+                    m_selectedOption = 1;
+                else if (m_selectedOption == 1)
+                    m_selectedOption = 0;
+
+                audio.playSound("menu_move");
+            }
+            else if (key->code == sf::Keyboard::Key::Down)
+            {
+                if (m_selectedOption == 0)
+                    m_selectedOption = 1;
+                else if (m_selectedOption == 1)
+                    m_selectedOption = 100;
+                else if (m_selectedOption == 100)
+                    m_selectedOption = 0;
+
+                audio.playSound("menu_move");
+            }
+            // Volume Adjustment
+            else if (key->code == sf::Keyboard::Key::Left && m_selectedOption == 0)
+            {
+                m_volumeLevel = std::max(0.f, m_volumeLevel - 5.f);
+                updateVolumeDisplay(&audio);
+                audio.playSound("menu_move");
+            }
+            else if (key->code == sf::Keyboard::Key::Right && m_selectedOption == 0)
+            {
+                m_volumeLevel = std::min(100.f, m_volumeLevel + 5.f);
+                updateVolumeDisplay(&audio);
+                audio.playSound("menu_move");
+            }
+            else if (key->code == sf::Keyboard::Key::Enter || key->code == sf::Keyboard::Key::Space)
+            {
+                if (m_selectedOption == 1)
                 {
-                    m_selectedOption = std::max(3, m_selectedOption - 1);
-                    audio.playSound("menu_move");
+                    toggleFullscreen();
+                    audio.playSound("menu_select");
                 }
-                else if (key->code == sf::Keyboard::Key::Down)
+                else if (m_selectedOption == 100)
                 {
-                    m_selectedOption = std::min(static_cast<int>(3 + m_resolutions.size() - 1), m_selectedOption + 1);
-                    audio.playSound("menu_move");
-                }
-                else if (key->code == sf::Keyboard::Key::Enter || key->code == sf::Keyboard::Key::Space)
-                {
-                    int optionIndex = m_selectedOption - 3;
-                    if (optionIndex >= 0 && optionIndex < static_cast<int>(m_resolutions.size()))
-                    {
-                        m_selectedResolutionIndex = optionIndex;
-                        updateResolutionDisplay();
-                        m_isResolutionDropdownOpen = false;
-                        m_selectedOption = 2;
-                        audio.playSound("menu_select");
-                    }
-                }
-                else if (key->code == sf::Keyboard::Key::Escape)
-                {
-                    m_isResolutionDropdownOpen = false;
-                    m_selectedOption = 2;
+                    audio.playSound("menu_select");
+                    // Caller handles state change via isBack()
                 }
             }
-            else
+            else if (key->code == sf::Keyboard::Key::Escape)
             {
-                // Main Options Navigation
-                if (key->code == sf::Keyboard::Key::Up)
-                {
-                    // Logic to cycle: 0(Vol) -> 1(Full) -> 2(Res) -> 100(Back)
-                    if (m_selectedOption == 0)
-                        m_selectedOption = 100;
-                    else if (m_selectedOption == 100)
-                        m_selectedOption = 2;
-                    else
-                        m_selectedOption--;
-
-                    audio.playSound("menu_move");
-                }
-                else if (key->code == sf::Keyboard::Key::Down)
-                {
-                    if (m_selectedOption == 2)
-                        m_selectedOption = 100;
-                    else if (m_selectedOption == 100)
-                        m_selectedOption = 0;
-                    else
-                        m_selectedOption++;
-
-                    audio.playSound("menu_move");
-                }
-                // Volume Adjustment
-                else if (key->code == sf::Keyboard::Key::Left && m_selectedOption == 0)
-                {
-                    m_volumeLevel = std::max(0.f, m_volumeLevel - 5.f);
-                    updateVolumeDisplay(&audio);
-                    audio.playSound("menu_move");
-                }
-                else if (key->code == sf::Keyboard::Key::Right && m_selectedOption == 0)
-                {
-                    m_volumeLevel = std::min(100.f, m_volumeLevel + 5.f);
-                    updateVolumeDisplay(&audio);
-                    audio.playSound("menu_move");
-                }
-                else if (key->code == sf::Keyboard::Key::Enter || key->code == sf::Keyboard::Key::Space)
-                {
-                    if (m_selectedOption == 1)
-                    {
-                        toggleFullscreen();
-                        audio.playSound("menu_select");
-                    }
-                    else if (m_selectedOption == 2)
-                    {
-                        m_isResolutionDropdownOpen = true;
-                        m_selectedOption = 3;
-                        audio.playSound("menu_select");
-                    }
-                    else if (m_selectedOption == 100)
-                    {
-                        audio.playSound("menu_select");
-                        // Caller handles state change via isBack()
-                    }
-                }
-                else if (key->code == sf::Keyboard::Key::Escape)
-                {
-                    m_selectedOption = 100;
-                }
+                m_selectedOption = 100;
             }
         }
 
@@ -265,45 +206,24 @@ void OptionsMenu::handleInput(AudioManager &audio)
             {
                 const sf::Vector2f mousePos = m_window.mapPixelToCoords(sf::Vector2i(mouseButton->position.x, mouseButton->position.y));
 
-                if (m_volumeSlider.getGlobalBounds().contains(mousePos) || m_volumeHandle.getGlobalBounds().contains(mousePos))
+                if (m_volumeSliderHandleSprite && m_volumeSliderHandleSprite->getGlobalBounds().contains(mousePos))
                 {
                     m_isDraggingSlider = true;
                     m_selectedOption = 0;
-                    // Calculate immediate click position
-                    float sliderLeft = m_volumeSlider.getPosition().x;
-                    float clampedX = std::max(sliderLeft, std::min(mousePos.x, sliderLeft + m_volumeSlider.getSize().x));
-                    m_volumeLevel = ((clampedX - sliderLeft) / m_volumeSlider.getSize().x) * 100.f;
+                    // Update position immediately on click
+                    float clampedX = std::max(m_sliderTrackLeft, std::min(mousePos.x, m_sliderTrackLeft + m_sliderTrackWidth));
+                    m_volumeLevel = ((clampedX - m_sliderTrackLeft) / m_sliderTrackWidth) * 100.f;
+                    m_volumeSliderHandleSprite->setPosition({clampedX, 290.f});
                     updateVolumeDisplay(&audio);
+                    audio.playSound("menu_select");
                 }
-                else if (m_fullscreenButton.getGlobalBounds().contains(mousePos))
+                else if (m_fullscreenButtonSprite && m_fullscreenButtonSprite->getGlobalBounds().contains(mousePos))
                 {
                     m_selectedOption = 1;
                     toggleFullscreen();
                     audio.playSound("menu_select");
                 }
-                else if (m_resolutionButton.getGlobalBounds().contains(mousePos))
-                {
-                    m_selectedOption = 2;
-                    m_isResolutionDropdownOpen = !m_isResolutionDropdownOpen;
-                    if (m_isResolutionDropdownOpen)
-                        m_selectedOption = 3;
-                }
-                else if (m_isResolutionDropdownOpen)
-                {
-                    for (size_t i = 0; i < m_resolutionOptionButtons.size(); ++i)
-                    {
-                        if (m_resolutionOptionButtons[i].getGlobalBounds().contains(mousePos))
-                        {
-                            m_selectedResolutionIndex = i;
-                            updateResolutionDisplay();
-                            m_isResolutionDropdownOpen = false;
-                            m_selectedOption = 2;
-                            audio.playSound("menu_select");
-                            break;
-                        }
-                    }
-                }
-                else if (m_backButton.getGlobalBounds().contains(mousePos))
+                else if (m_backButtonSprite && m_backButtonSprite->getGlobalBounds().contains(mousePos))
                 {
                     m_selectedOption = 100;
                     audio.playSound("menu_select");
@@ -313,13 +233,14 @@ void OptionsMenu::handleInput(AudioManager &audio)
 
         if (const auto *mouseMoved = event->getIf<sf::Event::MouseMoved>())
         {
-            if (m_isDraggingSlider)
+            if (m_isDraggingSlider && m_volumeSliderHandleSprite)
             {
                 const sf::Vector2f mousePos = m_window.mapPixelToCoords(sf::Vector2i(mouseMoved->position.x, mouseMoved->position.y));
-                float sliderLeft = m_volumeSlider.getPosition().x;
-                float clampedX = std::max(sliderLeft, std::min(mousePos.x, sliderLeft + m_volumeSlider.getSize().x));
+                float clampedX = std::max(m_sliderTrackLeft, std::min(mousePos.x, m_sliderTrackLeft + m_sliderTrackWidth));
 
-                m_volumeLevel = ((clampedX - sliderLeft) / m_volumeSlider.getSize().x) * 100.f;
+                // Update volume based on slider position
+                m_volumeLevel = ((clampedX - m_sliderTrackLeft) / m_sliderTrackWidth) * 100.f;
+                m_volumeSliderHandleSprite->setPosition({clampedX, 290.f});
                 updateVolumeDisplay(&audio);
             }
         }
@@ -337,24 +258,12 @@ void OptionsMenu::handleInput(AudioManager &audio)
 void OptionsMenu::toggleFullscreen()
 {
     m_isFullscreen = !m_isFullscreen;
-    m_fullscreenValue->setString(m_isFullscreen ? "ON" : "OFF");
-    applyWindowSettings();
-}
-
-void OptionsMenu::updateResolutionDisplay()
-{
-    m_resolutionValue->setString(resolutionToString(m_resolutions[m_selectedResolutionIndex]));
     applyWindowSettings();
 }
 
 void OptionsMenu::applyWindowSettings()
 {
-    const sf::Vector2u selected = m_resolutions[m_selectedResolutionIndex];
-    // Update global config variables
-    WINDOW_WIDTH = selected.x;
-    WINDOW_HEIGHT = selected.y;
-
-    const sf::VideoMode videoMode(selected);
+    const sf::VideoMode videoMode({1920, 1080});
     m_window.close();
     if (m_isFullscreen)
         m_window.create(videoMode, GAME_TITLE, sf::Style::Default, sf::State::Fullscreen);
@@ -371,19 +280,16 @@ void OptionsMenu::applyWindowSettings()
     m_window.setView(view);
 }
 
-std::string OptionsMenu::resolutionToString(sf::Vector2u res) const
-{
-    return std::to_string(res.x) + "x" + std::to_string(res.y);
-}
-
 void OptionsMenu::updateVolumeDisplay(AudioManager *audio)
 {
-    m_volumeValue->setString(std::to_string(static_cast<int>(m_volumeLevel)) + "%");
-    float sliderPos = (m_volumeLevel / 100.f) * 200.f;
-    m_volumeHandle.setPosition({m_volumeSlider.getPosition().x + sliderPos - 7.5f, m_volumeHandle.getPosition().y});
-
     // Update global config
     AUDIO_VOLUME = m_volumeLevel;
+
+    // Update volume value text display
+    if (m_volumeValueText)
+    {
+        m_volumeValueText->setString(std::to_string(static_cast<int>(m_volumeLevel)));
+    }
 
     // Update real audio volume if manager is provided
     if (audio)
@@ -417,39 +323,30 @@ void OptionsMenu::render()
     overlay.setFillColor(sf::Color(0, 0, 0, 150));
     m_window.draw(overlay);
 
-    if (m_titleText)
-        m_window.draw(*m_titleText);
+    // Draw all sprites
+    if (m_optionsTitleSprite)
+        m_window.draw(*m_optionsTitleSprite);
+    if (m_soundSprite)
+        m_window.draw(*m_soundSprite);
+    if (m_volumeSliderBackgroundSprite)
+        m_window.draw(*m_volumeSliderBackgroundSprite);
 
-    if (m_volumeLabel)
-        m_window.draw(*m_volumeLabel);
-    m_window.draw(m_volumeSlider);
-    m_window.draw(m_volumeHandle);
-    if (m_volumeValue)
-        m_window.draw(*m_volumeValue);
+    // Draw white line on top of button for volume slider
+    sf::RectangleShape sliderLine({m_sliderTrackWidth, 2.f});
+    sliderLine.setPosition({m_sliderTrackLeft, 282.f});
+    sliderLine.setFillColor(sf::Color::White);
+    m_window.draw(sliderLine);
 
-    if (m_fullscreenLabel)
-        m_window.draw(*m_fullscreenLabel);
-    m_window.draw(m_fullscreenButton);
-    if (m_fullscreenValue)
-        m_window.draw(*m_fullscreenValue);
-
-    if (m_resolutionLabel)
-        m_window.draw(*m_resolutionLabel);
-    m_window.draw(m_resolutionButton);
-    if (m_resolutionValue)
-        m_window.draw(*m_resolutionValue);
-
-    if (m_isResolutionDropdownOpen)
-    {
-        for (size_t i = 0; i < m_resolutionOptionButtons.size(); ++i)
-        {
-            m_window.draw(m_resolutionOptionButtons[i]);
-            if (m_resolutionOptions[i])
-                m_window.draw(*m_resolutionOptions[i]);
-        }
-    }
-
-    m_window.draw(m_backButton);
-    if (m_backButtonText)
-        m_window.draw(*m_backButtonText);
+    if (m_volumeSliderHandleSprite)
+        m_window.draw(*m_volumeSliderHandleSprite);
+    if (m_volumeValueText)
+        m_window.draw(*m_volumeValueText);
+    if (m_fullscreenButtonSprite)
+        m_window.draw(*m_fullscreenButtonSprite);
+    if (m_isFullscreen && m_onSprite)
+        m_window.draw(*m_onSprite);
+    else if (!m_isFullscreen && m_offSprite)
+        m_window.draw(*m_offSprite);
+    if (m_backButtonSprite)
+        m_window.draw(*m_backButtonSprite);
 }

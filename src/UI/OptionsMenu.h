@@ -14,37 +14,36 @@ private:
 
     // Options menu state
     int m_selectedOption;
-    bool m_isResolutionDropdownOpen;
-    int m_selectedResolutionIndex;
     bool m_isDraggingSlider;
 
-    // Available resolutions
-    std::vector<sf::Vector2u> m_resolutions;
+    // UI Elements - Textured
+    sf::Texture m_optionsTitleTexture;
+    std::optional<sf::Sprite> m_optionsTitleSprite;
 
-    // UI Elements
-    std::unique_ptr<sf::Text> m_titleText;
+    sf::Texture m_soundTexture;
+    std::optional<sf::Sprite> m_soundSprite;
 
-    // Volume controls
-    std::unique_ptr<sf::Text> m_volumeLabel;
-    std::unique_ptr<sf::Text> m_volumeValue;
-    sf::RectangleShape m_volumeSlider;
-    sf::RectangleShape m_volumeHandle;
+    // Volume slider (draggable handle)
+    sf::Texture m_volumeSliderHandleTexture;
+    std::optional<sf::Sprite> m_volumeSliderHandleSprite;
+    sf::Texture m_volumeSliderBackgroundTexture;
+    std::optional<sf::Sprite> m_volumeSliderBackgroundSprite;
+    std::unique_ptr<sf::Text> m_volumeValueText;
+    float m_sliderTrackLeft = 500.f;  // Start position of slider track
+    float m_sliderTrackWidth = 200.f; // Width of draggable area
 
-    // Fullscreen controls
-    std::unique_ptr<sf::Text> m_fullscreenLabel;
-    std::unique_ptr<sf::Text> m_fullscreenValue;
-    sf::RectangleShape m_fullscreenButton;
-
-    // Resolution controls
-    std::unique_ptr<sf::Text> m_resolutionLabel;
-    std::unique_ptr<sf::Text> m_resolutionValue;
-    sf::RectangleShape m_resolutionButton;
-    std::vector<std::unique_ptr<sf::Text>> m_resolutionOptions;
-    std::vector<sf::RectangleShape> m_resolutionOptionButtons;
+    // Fullscreen button with on/off overlay
+    sf::Texture m_fullscreenButtonTexture;
+    std::optional<sf::Sprite> m_fullscreenButtonSprite;
+    sf::Texture m_onTexture;
+    std::optional<sf::Sprite> m_onSprite;
+    sf::Texture m_offTexture;
+    std::optional<sf::Sprite> m_offSprite;
 
     // Back button
-    std::unique_ptr<sf::Text> m_backButtonText;
-    sf::RectangleShape m_backButton;
+    sf::Texture m_backButtonTexture;
+    std::optional<sf::Sprite> m_backButtonSprite;
+    std::optional<sf::Vector2f> m_backButtonBaseScale;
 
     // Background
     sf::Texture m_backgroundTexture;
@@ -73,12 +72,10 @@ public:
     void resetSelection()
     {
         m_selectedOption = 0;
-        m_isResolutionDropdownOpen = false;
     }
 
     float getVolumeLevel() const { return m_volumeLevel; }
     bool isFullscreen() const { return m_isFullscreen; }
-    sf::Vector2u getCurrentResolution() const { return m_resolutions[m_selectedResolutionIndex]; }
 
 private:
     void setupUI();
@@ -88,7 +85,5 @@ private:
     void updateVolumeDisplay(AudioManager *audio = nullptr);
 
     void toggleFullscreen();
-    void updateResolutionDisplay();
     void applyWindowSettings();
-    std::string resolutionToString(sf::Vector2u res) const;
 };
