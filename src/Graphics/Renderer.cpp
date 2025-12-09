@@ -56,8 +56,6 @@ void Renderer::render(const Map &map, const Player &player, const Follower &foll
             // 1. Render Ground Tile
             renderTile(map, x, y);
 
-            bool playerHere = ((int)player.getPosition().x == x && (int)player.getPosition().y == y);
-            bool followerHere = ((int)follower.getPosition().x == x && (int)follower.getPosition().y == y);
             // 2. Render Props on this Tile
             // Loop through all props to find which ones belong to this specific (x, y) tile
             for (const auto &propPtr : props)

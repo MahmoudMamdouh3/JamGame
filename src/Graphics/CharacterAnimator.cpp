@@ -1,48 +1,98 @@
 #include "CharacterAnimator.h"
 #include <iostream>
+#include <cmath>
 
 CharacterAnimator::CharacterAnimator(sf::Sprite &spriteRef)
     : m_sprite(spriteRef),
       m_animTimer(0.0f),
       m_currentFrame(0),
-      m_currentRow(0),
-      m_facingLeft(false)
+      m_currentDir(Direction::Forward)
 {
 }
 
 void CharacterAnimator::loadAssets()
 {
-    if (!m_texture.loadFromFile(texturePath()))
+    bool success = true;
+    if (!m_texForward.loadFromFile(down_texturePath()))
+        success = false; // down
+    if (!m_texBack.loadFromFile(up_texturePath()))
+        success = false; // up
+    if (!m_texLeft.loadFromFile(left_texturePath()))
+        success = false; // left
+    if (!m_texRight.loadFromFile(right_texturePath()))
+        success = false; // right
+
+    if (!success)
     {
-        std::cerr << "Error loading character texture!" << std::endl;
+        std::cerr << "ERROR: Failed to load one or more player sprite sheets!" << std::endl;
     }
 
-    m_sprite.setTexture(m_texture);
-    m_sprite.setOrigin(sf::Vector2f(FRAME_WIDTH / 2.0f, (float)FRAME_HEIGHT));
-    m_sprite.setScale(sf::Vector2f(SPRITE_SCALE, SPRITE_SCALE));
-    m_sprite.setTextureRect(sf::IntRect(sf::Vector2i(0, 0), sf::Vector2i(FRAME_WIDTH, FRAME_HEIGHT)));
+    m_sprite.setTexture(m_texForward);
+
+    int frameWidth = m_texForward.getSize().x / FRAMES_PER_SHEET;
+    int frameHeight = m_texForward.getSize().y;
+
+    m_sprite.setOrigin(sf::Vector2f(frameWidth / 2.0f, (float)frameHeight));
+    m_sprite.setTextureRect(sf::IntRect(sf::Vector2i(0, 0), sf::Vector2i(frameWidth, frameHeight)));
+    m_sprite.setScale(sf::Vector2f(1.0f, 1.0f));
 }
 
 void CharacterAnimator::update(float dt, sf::Vector2f inputDir)
 {
     bool moving = (inputDir.x != 0 || inputDir.y != 0);
+    Direction newDir = m_currentDir;
 
     if (moving)
     {
-        if (inputDir.x > 0.1f)
-            m_currentRow = 0; // D -> Grid X+ -> Bottom Right
-        else if (inputDir.x < -0.1f)
-            m_currentRow = 3; // A -> Grid X- -> Top Left
-        else if (inputDir.y > 0.1f)
-            m_currentRow = 2; // S -> Grid Y+ -> Bottom Left
-        else if (inputDir.y < -0.1f)
-            m_currentRow = 1; // W -> Grid Y- -> Top Right
+        if (std::abs(inputDir.x) > std::abs(inputDir.y))
+        {
+            if (inputDir.x > 0)
+                newDir = Direction::Right;
+            else
+                newDir = Direction::Left;
+        }
+        else
+        {
+            if (inputDir.y > 0)
+                newDir = Direction::Forward;
+            else
+                newDir = Direction::Back;
+        }
+    }
 
+    // 2. SWITCH TEXTURE
+    if (newDir != m_currentDir)
+    {
+        m_currentDir = newDir;
+        m_currentFrame = 0;
+
+        switch (m_currentDir)
+        {
+        case Direction::Forward:
+            m_sprite.setTexture(m_texForward);
+            break;
+        case Direction::Back:
+            m_sprite.setTexture(m_texBack);
+            break;
+        case Direction::Left:
+            m_sprite.setTexture(m_texLeft);
+            break;
+        case Direction::Right:
+            m_sprite.setTexture(m_texRight);
+            break;
+        default:
+            break;
+        }
+    }
+
+    // 3. ANIMATE
+    if (moving)
+    {
         m_animTimer += dt;
-        if (m_animTimer >= ANIM_FRAME_TIME)
+        if (m_animTimer >= FRAME_TIME)
         {
             m_animTimer = 0.0f;
-            m_currentFrame = (m_currentFrame + 1) % FRAMES_PER_ROW;
+            m_currentFrame = (m_currentFrame + 1) % FRAMES_PER_SHEET;
         }
     }
     else
@@ -50,10 +100,18 @@ void CharacterAnimator::update(float dt, sf::Vector2f inputDir)
         m_currentFrame = 0;
         m_animTimer = 0.0f;
     }
-    m_sprite.setScale(sf::Vector2f(SPRITE_SCALE, SPRITE_SCALE));
 
-    int left = m_currentFrame * FRAME_WIDTH;
-    int top = m_currentRow * FRAME_HEIGHT;
+    // 4. APPLY TEXTURE RECT (FIXED FOR SFML 3)
+    // getTexture() returns a reference (const sf::Texture&), not a pointer.
+    // We assume a texture is loaded because loadAssets() does it.
+    const sf::Texture &currentTex = m_sprite.getTexture();
 
-    m_sprite.setTextureRect(sf::IntRect(sf::Vector2i(left, top), sf::Vector2i(FRAME_WIDTH, FRAME_HEIGHT)));
+    // Use '.' instead of '->'
+    int w = currentTex.getSize().x / FRAMES_PER_SHEET;
+    int h = currentTex.getSize().y;
+
+    m_sprite.setOrigin(sf::Vector2f(w / 2.0f, (float)h));
+
+    int left = m_currentFrame * w;
+    m_sprite.setTextureRect(sf::IntRect(sf::Vector2i(left, 0), sf::Vector2i(w, h)));
 }
