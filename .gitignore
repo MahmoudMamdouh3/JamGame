@@ -6,6 +6,7 @@ bin/
 # Visual Studio / VS Code
 .vscode/
 .vs/
+.idea/
 *.sln
 *.vcxproj
 *.vcxproj.user
