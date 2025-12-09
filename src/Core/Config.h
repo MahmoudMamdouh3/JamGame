@@ -23,10 +23,10 @@ const int BASE_WINDOW_WIDTH = 1920;
 const int BASE_WINDOW_HEIGHT = 1080;
 const std::string FONT_PATH = "assets/fonts/arial.ttf";
 
-const float TILE_WIDTH = 64.f;
-const float TILE_HEIGHT = 32.f;
+const float TILE_WIDTH = 128.f;
+const float TILE_HEIGHT = 128.f;
 const float BLOCK_HEIGHT = 40.f;
-const int MAP_SIZE = 30;
+const int MAP_SIZE = 16;
 
 const float GRAVITY = 2000.0f;
 const float JUMP_FORCE = 550.0f;
