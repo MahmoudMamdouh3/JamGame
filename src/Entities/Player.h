@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "AnimationComponent.h"
+#include "PlayerAnimator.h"
 #include "Config.h"
 #include "AudioManager.h"
 
@@ -23,7 +23,7 @@ private:
     // Visuals
     sf::Sprite m_sprite;
     sf::CircleShape m_shadow;
-    AnimationComponent m_animator; // Handles the sprite animation
+    PlayerAnimator m_animator; // Handles the sprite animation
 
 public:
     Player();
@@ -40,5 +40,5 @@ public:
     // We pass 'const Map&' so the player can ask the map about heights
     void handleInput(float dt, const Map &map);
     void update(float dt, const Map &map);
-    void jump(const Map& map, AudioManager& audio);
+    void jump(const Map &map, AudioManager &audio);
 };

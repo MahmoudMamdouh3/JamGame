@@ -1,6 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "AnimationComponent.h"
+#include "FollowerAnimator.h"
 #include "Config.h"
 
 class Map;
@@ -14,7 +14,7 @@ private:
     sf::Texture m_dummyTexture;
     sf::Sprite m_sprite;
     sf::CircleShape m_shadow;
-    AnimationComponent m_animator;
+    FollowerAnimator m_animator;
 
     sf::Vector2i m_targetTile;
     sf::Vector2f m_targetPos;

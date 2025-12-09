@@ -49,6 +49,12 @@ add_executable(JamGame ${SOURCES})
 target_sources(JamGame PRIVATE
     src/Entities/Follower.cpp
     src/Entities/Follower.h
+    src/Graphics/CharacterAnimator.cpp
+    src/Graphics/CharacterAnimator.h
+    src/Graphics/PlayerAnimator.cpp
+    src/Graphics/PlayerAnimator.h
+    src/Graphics/FollowerAnimator.cpp
+    src/Graphics/FollowerAnimator.h
 )
 
 # 4. Linking

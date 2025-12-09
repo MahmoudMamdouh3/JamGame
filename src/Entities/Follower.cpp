@@ -20,7 +20,7 @@ Follower::Follower()
 
 void Follower::loadAssets()
 {
-    m_animator.loadAssets("assets/Cat_Sprite_sheet.png");
+    m_animator.loadAssets();
 }
 
 void Follower::setTargetTile(const sf::Vector2i &tile)
