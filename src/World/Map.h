@@ -1,22 +1,34 @@
 #pragma once
-#include "../Core/Config.h"
-#include "../Props/Prop.h"
+#include <SFML/Graphics.hpp>
 #include <vector>
-#include <memory> // Required for unique_ptr
+#include <memory>
+#include "../Props/Prop.h"
 
-class Map
-{
-private:
-    int m_heights[MAP_SIZE][MAP_SIZE];
-
-    // FIX: Using unique_ptr to prevent memory crashes (vector resizing)
-    std::vector<std::unique_ptr<Prop>> m_props;
-
+class Map {
 public:
-    Map();
-    void buildLevel();
-    int getHeight(int x, int y) const;
+    Map() = default;
+
+    // Load a specific level number
+    void buildLevel(int levelIndex);
+
+    // Update (for animations)
+    void update(float dt);
+
+    void render(sf::RenderWindow& window, const sf::Vector2f& cameraOffset);
+
+    // Getters
+    const std::vector<std::unique_ptr<Prop>>& getProps() const { return m_props; }
+
+    // THIS FUNCTION NEEDS THE VARIABLE AT THE BOTTOM
+    sf::Vector2f getStartPosition() const { return m_startPosition; }
+
+    // Helpers
+    float getHeight(int x, int y) const { return 0.0f; }
     bool checkPropCollision(float x, float y) const;
 
-    const std::vector<std::unique_ptr<Prop>>& getProps() const { return m_props; }
+private:
+    std::vector<std::unique_ptr<Prop>> m_props;
+
+    // --- THIS VARIABLE MUST BE HERE ---
+    sf::Vector2f m_startPosition = { 0.f, 0.f };
 };

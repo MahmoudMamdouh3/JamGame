@@ -7,7 +7,8 @@ enum class GameState
     Menu,
     Playing,
     Paused,
-    Exiting
+    Exiting,
+    Editor //for map
 };
 
 // --- MUTABLE SETTINGS (Can change during runtime) ---

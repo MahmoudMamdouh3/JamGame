@@ -9,13 +9,14 @@ class Player
 {
 public:
     Player();
-
+    bool m_isFalling = false;
+    float m_fallTimer = 0.0f;
     void loadAssets();
 
     // UPDATED: Now takes AudioManager& to play sounds
     void handleInput(float dt, const Map& map, AudioManager& audio);
 
-    void update(float dt, const Map& map);
+    void update(float dt,  Map& map , AudioManager& audio);
 
     // Getters
     sf::Vector2f getPosition() const;
@@ -23,10 +24,26 @@ public:
     const sf::Sprite& getSprite() const;
     const sf::CircleShape& getShadow() const;
 
-private:
-    // Helper for collision logic
-    bool isValidPosition(float x, float y, const Map& map);
+    bool isLevelComplete() const { return m_levelComplete; }
+    void render(sf::RenderWindow& window, const sf::Vector2f& cameraOffset);
+    // NEW: Reset flag
+ // In Player.h
+    void resetLevel(sf::Vector2f startPos) {
+        m_levelComplete = false;
+        m_position = startPos;
+        m_isFalling = false;
+        m_sprite.setColor(sf::Color::White);
 
+        // FIX: Set to 0.5f instead of 1.f
+        m_sprite.setScale({ 0.5f, 0.5f });
+    }
+
+    sf::Texture m_texture;      // The actual player texture
+
+private:
+    bool m_levelComplete = false; // Add this variable
+    bool isValidPosition(float x, float y, const Map& map);
+        
     // Graphics
     sf::Texture m_dummyTexture;
     sf::Sprite m_sprite;

@@ -8,6 +8,8 @@
 #include "../UI/PauseMenu.h"
 #include "Config.h" 
 #include "../Audio/AudioManager.h"
+#include "../Tools/Editor.hpp"          
+#include "../Tools/ResourceManager.hpp" 
 
 class Game
 {
@@ -37,7 +39,12 @@ private:
     GameState m_gameState;
 
     sf::Vector2i m_lastPlayerTile;
+    int m_currentLevel = 1; // Start at Level 1
+	// Editor System
+    ResourceManager m_editorResources; 
+    std::unique_ptr<Editor> m_editor;  
 
+    AudioManager m_audioManager; // <--- 2. ADD THIS VARIABLE
     void processEvents();
     void update(float dt);
     void render();

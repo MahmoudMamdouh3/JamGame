@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.28)
-project(JamGame LANGUAGES CXX C)
 
-# 1. Global Settings
+# --- MOVED THESE LINES TO THE TOP ---
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# ------------------------------------
+
+project(JamGame LANGUAGES CXX C)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # 2. Dependencies
@@ -45,7 +48,7 @@ file(GLOB_RECURSE SOURCES
 
 add_executable(JamGame ${SOURCES})
 
-# Ensure new entities are always built even if glob cache is stale
+# Ensure new entities and TOOLS are always built even if glob cache is stale
 target_sources(JamGame PRIVATE
     src/Entities/Follower.cpp
     src/Entities/Follower.h
@@ -55,14 +58,26 @@ target_sources(JamGame PRIVATE
     src/Graphics/PlayerAnimator.h
     src/Graphics/FollowerAnimator.cpp
     src/Graphics/FollowerAnimator.h
+    
+    # --- NEW TOOLS ADDED HERE ---
+    src/Tools/Editor.cpp
+    src/Tools/Editor.hpp
+    src/Tools/GameObject.cpp
+    src/Tools/GameObject.hpp
+    src/Tools/ResourceManager.cpp
+    src/Tools/ResourceManager.hpp
+    src/Tools/CollisionUtils.hpp
+    
+    # --- ENSURE THESE ARE BUILT ---
+    src/World/Map.cpp
+    src/Props/Prop.cpp
 )
 
 # 4. Linking
 target_link_libraries(JamGame PRIVATE SFML::Graphics SFML::Window SFML::System SFML::Audio box2d glad)
 
 # 5. Include Directories
-# This is the "Magic" part. We add every subfolder to the include path.
-# This lets you keep writing #include "Player.h" instead of #include "Entities/Player.h"
+# Added "src/Tools" so you can include "Editor.hpp" directly
 target_include_directories(JamGame PRIVATE 
     include
     "${CMAKE_SOURCE_DIR}/src"
@@ -73,6 +88,7 @@ target_include_directories(JamGame PRIVATE
     "${CMAKE_SOURCE_DIR}/src/Audio"
     "${CMAKE_SOURCE_DIR}/src/UI"
     "${CMAKE_SOURCE_DIR}/src/Props"
+    "${CMAKE_SOURCE_DIR}/src/Tools"  # <--- ADDED THIS
 )
 
 # 6. Asset Management

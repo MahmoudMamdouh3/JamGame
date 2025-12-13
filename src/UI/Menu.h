@@ -38,6 +38,10 @@ private:
     std::optional<sf::Vector2f> m_optionsBaseScale;
     std::optional<sf::Vector2f> m_exitBaseScale;
 
+    // Editor Button Sprite for map
+    std::optional<sf::Sprite> m_editorSprite;     
+    std::optional<sf::Vector2f> m_editorBaseScale;
+
     sf::Vector2u m_lastWindowSize{};
 
     // Options menu
@@ -55,6 +59,7 @@ public:
     void handleInput(AudioManager& audio);
 
     void render();
+
 
     MenuState getCurrentState() const { return m_currentState; }
     int getSelectedOption() const { return m_selectedOption; }

@@ -1,153 +1,77 @@
 #include "Renderer.h"
-#include "Cube.h"
 #include "IsometricUtils.h"
-#include <cmath>
-#include <algorithm>
+#include <iostream>
+#include <algorithm> // Required for sorting
 
-Renderer::Renderer(sf::RenderWindow &window)
+Renderer::Renderer(sf::RenderWindow& window)
     : m_window(window), m_showGrid(true)
 {
-    m_cameraOffset = sf::Vector2f(WINDOW_WIDTH / 2.0f, 100.f);
+    // CENTER THE CAMERA
+    // This assumes your window is 1920x1080 or similar.
+    // If objects are too far right, lower the X value (e.g., to 400.0f).
+    m_cameraOffset = sf::Vector2f(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 4.0f);
 }
 
-void Renderer::toggleGrid()
-{
-    m_showGrid = !m_showGrid;
+void Renderer::toggleGrid() { m_showGrid = !m_showGrid; }
+
+void Renderer::update(float dt, sf::Vector2f playerGridPos) {
+    // Keeping camera fixed for now to prevent it flying away.
+    // You can re-enable smooth follow later if you want.
 }
 
-sf::Vector2f Renderer::lerp(const sf::Vector2f &start, const sf::Vector2f &end, float t)
+void Renderer::render(const Map& map, const Player& player, const Follower& follower)
 {
-    return start + (end - start) * t;
-}
+    // 1. Dark Background (Standard Game Look)
+    m_window.clear(sf::Color(20, 20, 30));
 
-void Renderer::update(float dt, sf::Vector2f playerGridPos)
-{
-    float centerX = MAP_SIZE / 2.0f - 0.5f;
-    float centerY = MAP_SIZE / 2.0f - 0.5f;
-    sf::Vector2f mapCenterIso = IsometricUtils::gridToScreen(centerX, centerY);
-    sf::Vector2f screenCenter(WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
-    sf::Vector2f baseOffset = screenCenter - mapCenterIso;
-
-    sf::Vector2f playerIso = IsometricUtils::gridToScreen(playerGridPos.x, playerGridPos.y);
-    sf::Vector2f diff = mapCenterIso - playerIso;
-    float leanFactor = 0.1f;
-
-    sf::Vector2f targetOffset = baseOffset + (diff * leanFactor);
-    float smoothSpeed = 4.0f * dt;
-    m_cameraOffset = lerp(m_cameraOffset, targetOffset, smoothSpeed);
-}
-
-void Renderer::render(const Map &map, const Player &player, const Follower &follower)
-{
-    // Background Color
-    m_window.clear(sf::Color(245, 245, 245));
-
-    // Get all props once
-    const auto &props = map.getProps();
-
-    for (int sum = 0; sum < MAP_SIZE * 2; sum++)
-    {
-        for (int x = 0; x < MAP_SIZE; x++)
-        {
-            int y = sum - x;
-            if (y < 0 || y >= MAP_SIZE)
-                continue;
-
-            // 1. Render Ground Tile
-            renderTile(map, x, y);
-
-            // 2. Render Props on this Tile
-            // Loop through all props to find which ones belong to this specific (x, y) tile
-            for (const auto &propPtr : props)
-            { // propPtr is a std::unique_ptr<Prop>
-
-                // FIX: Use '->' because it is a pointer
-                int propX = (int)std::round(propPtr->getPosition().x);
-                int propY = (int)std::round(propPtr->getPosition().y);
-
-                if (propX == x && propY == y)
-                {
-
-                    // Manual Render Logic
-                    sf::Vector2f screenPos = IsometricUtils::gridToScreen(propPtr->getPosition().x, propPtr->getPosition().y);
-                    screenPos += m_cameraOffset;
-
-                    // FIX: Use '->' to get the sprite
-                    sf::Sprite s = propPtr->getSprite();
-
-                    // FIX: Round position to avoid visual glitches
-                    s.setPosition(sf::Vector2f(std::round(screenPos.x), std::round(screenPos.y)));
-
-                    m_window.draw(s);
-                }
-            }
-
-            // 3. Render Player
-            bool playerHere = ((int)player.getPosition().x == x && (int)player.getPosition().y == y);
-            bool followerHere = ((int)follower.getPosition().x == x && (int)follower.getPosition().y == y);
-
-            if (followerHere)
-            {
-                renderFollower(follower, map, x, y);
-            }
-
-            if (playerHere)
-            {
-                renderPlayer(player, map, x, y);
-            }
-        }
+    // 2. Collect all props
+    const auto& props = map.getProps();
+    std::vector<Prop*> sortedProps;
+    for (const auto& prop : props) {
+        sortedProps.push_back(prop.get());
     }
+
+    // 3. Sort Props by Y Position (Depth Sorting)
+    // This ensures objects "lower" on screen are drawn "in front"
+    std::sort(sortedProps.begin(), sortedProps.end(), [](Prop* a, Prop* b) {
+        return a->getPosition().y < b->getPosition().y;
+        });
+
+    // 4. Draw Props
+    for (auto* prop : sortedProps) {
+        prop->render(m_window, m_cameraOffset);
+    }
+
+    // 5. Draw Player & Follower
+    // We pass 0,0 because we are drawing directly now, not using the grid loop
+    renderPlayer(player, map, 0, 0);
+    renderFollower(follower, map, 0, 0);
+
     m_window.display();
 }
 
-void Renderer::renderTile(const Map &map, int x, int y)
+// Keep these helper functions for Player drawing
+void Renderer::renderTile(const Map& map, int x, int y) { /* unused in this mode */ }
+
+void Renderer::renderPlayer(const Player& player, const Map& map, int x, int y)
 {
-    if (m_showGrid)
-    {
-        sf::Vector2f isoPos = IsometricUtils::gridToScreen((float)x, (float)y);
-        isoPos += m_cameraOffset;
-
-        sf::ConvexShape tile;
-        tile.setPointCount(4);
-        tile.setPoint(0, sf::Vector2f(0.f, 0.f));
-        tile.setPoint(1, sf::Vector2f(TILE_WIDTH / 2, TILE_HEIGHT / 2));
-        tile.setPoint(2, sf::Vector2f(0.f, TILE_HEIGHT));
-        tile.setPoint(3, sf::Vector2f(-TILE_WIDTH / 2, TILE_HEIGHT / 2));
-
-        tile.setPosition(isoPos);
-
-        // 2. TILE FILL COLOR
-        // Change this if you want transparent or colored tiles
-        tile.setFillColor(sf::Color::Transparent);
-
-        // 3. GRID LINE COLOR
-        tile.setOutlineColor(sf::Color(160, 160, 160, 150));
-        tile.setOutlineThickness(1.0f);
-
-        m_window.draw(tile);
-    }
-}
-
-void Renderer::renderPlayer(const Player &player, const Map &map, int x, int y)
-{
+    // Convert Player Grid Pos -> Screen Pos
     sf::Vector2f pScreen = IsometricUtils::gridToScreen(player.getPosition().x, player.getPosition().y);
+
+    // Apply Camera Offset
     pScreen += m_cameraOffset;
 
-    int realX = (int)std::round(player.getPosition().x);
-    int realY = (int)std::round(player.getPosition().y);
-    realX = std::max(0, std::min(realX, (int)MAP_SIZE - 1));
-    realY = std::max(0, std::min(realY, (int)MAP_SIZE - 1));
-
-    float currentFloorY = map.getHeight(realX, realY) * BLOCK_HEIGHT;
-
-    // Shadow
+    // Draw Shadow
     sf::CircleShape shadow = player.getShadow();
-    shadow.setPosition(sf::Vector2f(pScreen.x, pScreen.y - currentFloorY));
+    shadow.setPosition(sf::Vector2f(pScreen.x, pScreen.y)); // Simplified shadow Y
     m_window.draw(shadow);
 
-    const sf::Sprite &sprite = player.getSprite();
+    // Draw Player Sprite
+    const sf::Sprite& sprite = player.getSprite();
     sf::Vector2f spritePos = pScreen;
-    spritePos.y -= (player.getZ() + currentFloorY);
+
+    // Apply Z-Height (Jumping)
+    spritePos.y -= player.getZ();
 
     sf::Sprite drawSprite = sprite;
     drawSprite.setPosition(sf::Vector2f(std::round(spritePos.x), std::round(spritePos.y)));
@@ -155,21 +79,20 @@ void Renderer::renderPlayer(const Player &player, const Map &map, int x, int y)
     m_window.draw(drawSprite);
 }
 
-void Renderer::renderFollower(const Follower &follower, const Map &map, int x, int y)
+void Renderer::renderFollower(const Follower& follower, const Map& map, int x, int y)
 {
     sf::Vector2f pScreen = IsometricUtils::gridToScreen(follower.getPosition().x, follower.getPosition().y);
     pScreen += m_cameraOffset;
-    float currentFloorY = map.getHeight(x, y) * BLOCK_HEIGHT;
 
     sf::CircleShape shadow = follower.getShadow();
-    shadow.setPosition(sf::Vector2f(pScreen.x, pScreen.y - currentFloorY));
+    shadow.setPosition(sf::Vector2f(pScreen.x, pScreen.y));
     m_window.draw(shadow);
 
-    const sf::Sprite &sprite = follower.getSprite();
+    const sf::Sprite& sprite = follower.getSprite();
     sf::Vector2f spritePos = pScreen;
-    spritePos.y -= (follower.getZ() + currentFloorY);
+    spritePos.y -= follower.getZ();
+
     sf::Sprite drawSprite = sprite;
     drawSprite.setPosition(sf::Vector2f(std::round(spritePos.x), std::round(spritePos.y)));
-
     m_window.draw(drawSprite);
 }

@@ -1,14 +1,13 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include "Config.h"
 
-class IsometricUtils
-{
+class IsometricUtils {
 public:
-    static sf::Vector2f gridToScreen(float x, float y)
-    {
-        return sf::Vector2f(
-            (x - y) * (TILE_WIDTH / 2.0f),
-            (x + y) * (TILE_WIDTH / 2.0f));
-    }
+    // Define tile size constants here so they are shared
+    static constexpr float TILE_WIDTH = 64.0f;
+    static constexpr float TILE_HEIGHT = 32.0f;
+
+    // Just the declarations
+    static sf::Vector2f gridToScreen(float x, float y);
+    static sf::Vector2f screenToGrid(sf::Vector2f screenPos);
 };
